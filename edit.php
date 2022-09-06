@@ -60,10 +60,13 @@ function jazzquiz_session_open($jazzquizid) {
 function get_qbank_view(\question_edit_contexts $contexts, jazzquiz $jazzquiz, \moodle_url $url, array $pagevars) {
     $qperpage = optional_param('qperpage', 10, PARAM_INT);
     $qpage = optional_param('qpage', 0, PARAM_INT);
+    $recurse = optional_param('recurse', 1, PARAM_INT);
+    $showhidden = optional_param('showhidden', 1, PARAM_INT);
+    $showquestiontext = optional_param('qbshowtext', 1, PARAM_INT);
     // Capture question bank display in buffer to have the renderer render output.
     ob_start();
     $questionbank = new bank\jazzquiz_question_bank_view($contexts, $url, $jazzquiz->course, $jazzquiz->cm);
-    $questionbank->display('editq', $qpage, $qperpage, $pagevars['cat'], true, true, true);
+    $questionbank->display('editq', $qpage, $qperpage, $pagevars['cat'], $recurse, $showhidden, $showquestiontext);
     return ob_get_clean();
 }
 
@@ -174,7 +177,7 @@ function jazzquiz_edit() {
 
     // Process moving, deleting and unhiding questions...
     $questionbank = new \core_question\bank\view($contexts, $url, $COURSE, $cm);
-    $questionbank->process_actions();
+    $questionbank->process_actions($url,$cm);
 
     switch ($action) {
         case 'order':

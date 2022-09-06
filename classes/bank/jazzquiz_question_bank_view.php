@@ -75,7 +75,8 @@ class jazzquiz_question_bank_view extends \core_question\bank\view {
      * @param array $tagids
      * @throws \coding_exception
      */
-    public function display($tabname, $page, $perpage, $cat, $recurse, $showhidden, $showquestiontext, $tagids = []) {
+    public function display($tabname, $page, $perpage, $cat,
+            $recurse, $showhidden, $showquestiontext, $tagids = []) {
         global $PAGE;
 
         if ($this->process_actions_needing_ui()) {
