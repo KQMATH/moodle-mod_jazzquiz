@@ -106,7 +106,10 @@ class jazzquiz_question_bank_view extends \core_question\bank\view {
             $showquestiontext,
             $this->contexts->having_cap('moodle/question:add')
         );
+        /* The following lines adds the button to add questions.
+         * This is not used in the superclass. */
         $this->display_add_selected_questions_button();
+        /* The following call is not in the superclass, and I do not know why. */
         $PAGE->requires->js_call_amd('core_question/edit_tags', 'init', ['#questionscontainer']);
     }
 
