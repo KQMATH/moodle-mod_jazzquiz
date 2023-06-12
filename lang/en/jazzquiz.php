@@ -139,6 +139,9 @@ $string['error_with_request'] = 'There was an error with the request.';
 $string['x_seconds_left'] = '{$a}s left';
 $string['error_saving_vote'] = 'There was an error saving your vote.';
 $string['you_already_voted'] = 'Sorry, but you have already voted.';
+$string['guest_login'] = 'You are not enrolled on the course, and there is no quiz session open to guests at the moment.' ;
+$string['no_guests'] = 'It is possible that the teacher has not yet started a quiz session, and that you may try again later.  It is also possible that you have to log in as a student and enrol on the course to be allowed to take part.' ; 
+$string['ask_teacher'] = 'If in doubt, ask the teacher.' ; 
 
 // Instructor Controls.
 $string['startquiz'] = 'Start quiz';

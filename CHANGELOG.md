@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org).
 ### Changed
 - 
 
+## [1.2.1] - 2023-06-08
+
+- Improvement of guest user feedback upon trying to attend a quiz which doesn't allow guests to attend
+- Added new template for "guests_not_allowed" feedback
+
 ## [1.2.0] - 2023-03-31
 
 - Prepared for Moodle 4.0

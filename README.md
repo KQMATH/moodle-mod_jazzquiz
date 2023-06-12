@@ -20,9 +20,14 @@ The teacher can, at a later date, go back through the results and, for each ques
 The repolls are treated as separate questions, and you will get a correct order in the review page.
 
 ## Documentation
-Documentation is available [here](https://github.com/KQMATH/moodle-mod_jazzquiz/wiki), including [installation instructions](https://github.com/KQMATH/moodle-mod_jazzquiz/wiki/Installation-instructions).
+
+
+Documentation is available as
+[github pages](https://kqmath.github.io/) at
+[https://kqmath.github.io/docs/jazzquiz/](https://kqmath.github.io/docs/jazzquiz/)
 
 ## Feedback:
+
 **Project lead:** Hans Georg Schaathun: <hasc@ntnu.no>
 
 **Developer:** Sebastian S. Gundersen: <sebastsg@stud.ntnu.no>

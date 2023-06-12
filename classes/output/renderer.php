@@ -156,6 +156,18 @@ class renderer extends \plugin_renderer_base {
         ]);
     }
 
+
+    /**
+     * Shows the "guests not allowed" page when trying to access a 
+     * quiz which does not allow guests in guest mode.
+     * @throws \moodle_exception
+     */
+    public function guests_not_allowed() {
+        echo $this->render_from_template('jazzquiz/guests_not_allowed', []);
+    }
+
+
+
     /**
      * Renders the quiz to the page
      * @param jazzquiz_session $session
