@@ -136,7 +136,7 @@ function jazzquiz_reports() {
     if (!$isdownload) {
         $jazzquiz->renderer->header($jazzquiz, 'reports');
     }
-	$sessionid = optional_param('sessionid', 0, PARAM_INT);
+        $sessionid = optional_param('sessionid', 0, PARAM_INT);
     switch ($action) {
         case 'view':
             jazzquiz_view_session_report($jazzquiz, $url, $sessionid);

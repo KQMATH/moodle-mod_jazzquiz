@@ -46,11 +46,13 @@
             <h2>{{# str }} attendance_list, jazzquiz {{/str}}</h2>
             <table>
                 <tr>
+                    <th>Student ID</th> 
                     <th>{{# str }} student, jazzquiz {{/str}}</th>
                     <th>{{# str }} responses, jazzquiz {{/ str }}</th>
                 </tr>
                 {{# students }}
                     <tr>
+                        <td>{{ idnumber }}</td>
                         <td>{{ name }}</td>
                         <td>{{# str }} a_responses, jazzquiz, {{ count }} {{/ str }}</td>
                     </tr>

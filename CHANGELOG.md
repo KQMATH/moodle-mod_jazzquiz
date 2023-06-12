@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org).
 ### Changed
 - 
 
+## [1.2.0] - 2023-03-31
+
+- Prepared for Moodle 4.0
+
 ## [1.1.0] - 2022-08-17
 
 - Added button to delete session report

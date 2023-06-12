@@ -34,7 +34,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright   2014 University of Wisconsin - Madison
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class question_bank_add_to_jazzquiz_action_column extends \core_question\bank\action_column_base {
+class question_bank_add_to_jazzquiz_action_column extends \core_question\local\bank\action_column_base {
 
     /**
      * Get the name of the column.
@@ -61,7 +61,7 @@ class question_bank_add_to_jazzquiz_action_column extends \core_question\bank\ac
      * Get the required fields.
      * @return string[]
      */
-    public function get_required_fields() {
+    public function get_required_fields(): array {
         return ['q.id'];
     }
 

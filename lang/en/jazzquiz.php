@@ -162,6 +162,7 @@ $string['attendance'] = 'Attendance';
 $string['a_students_answered'] = '<b>{$a}</b> students answered at least one question.';
 $string['no_attempts_found'] = 'No attempts found.';
 $string['student'] = 'Student';
+// $string['student_id'] = 'StudentID'; //not working in report.mustache, not sure why
 $string['select_session'] = 'Select session to review:';
 $string['attendance_list'] = 'Attendance list';
 $string['download_report'] = 'Download report';

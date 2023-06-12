@@ -139,7 +139,8 @@ class jazzquiz_session {
         if (!$user) {
             return '?';
         }
-        return fullname($user);
+        $userFirstLastName = $user->lastname . ', ' . $user->firstname;
+        return $userFirstLastName;
     }
 
     public function user_name_for_attendance($userid) {
@@ -151,7 +152,20 @@ class jazzquiz_session {
         if (!$user) {
             return '?';
         }
-        return fullname($user);
+        $userFirstLastName = $user->lastname . ', ' . $user->firstname;
+        return $userFirstLastName;
+    }
+
+    public function user_idnumber_for_attendance($userid) {
+        global $DB;
+        if ($this->requires_anonymous_attendance() || is_null($userid)) {
+            return get_string('anonymous', 'jazzquiz');
+        }
+        $user = $DB->get_record('user', ['id' => $userid]);
+        if (!$user) {
+            return '?';
+        }
+        return $user->idnumber;
     }
 
     /**
@@ -475,6 +489,7 @@ class jazzquiz_session {
         $records = $DB->get_records('jazzquiz_attendance', ['sessionid' => $this->data->id]);
         foreach ($records as $record) {
             $attendances[] = [
+                'idnumber' => $this->user_idnumber_for_attendance($record->userid),
                 'name' => $this->user_name_for_attendance($record->userid),
                 'count' => $record->numresponses
             ];

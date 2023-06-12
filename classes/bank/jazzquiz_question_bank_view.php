@@ -41,20 +41,20 @@ use \core_question\bank\search\category_condition as category_condition;
  * @copyright   2018 NTNU
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class jazzquiz_question_bank_view extends \core_question\bank\view {
+class jazzquiz_question_bank_view extends \core_question\local\bank\view {
 
     /**
      * Define the columns we want to be displayed on the question bank
      * @return array
      */
-    protected function wanted_columns() {
+    protected function wanted_columns(): array {
         // Full class names for question bank columns.
         $columns = [
             '\\mod_jazzquiz\\bank\\question_bank_add_to_jazzquiz_action_column',
-            'core_question\\bank\\checkbox_column',
-            'core_question\\bank\\question_type_column',
-            'core_question\\bank\\question_name_column',
-            'core_question\\bank\\preview_action_column'
+            'core_question\\local\\bank\\checkbox_column',
+            'qbank_viewquestiontype\\question_type_column',
+            'qbank_viewquestionname\\viewquestionname_column_helper',
+            'qbank_previewquestion\\preview_action_column'
         ];
         foreach ($columns as $column) {
             $this->requiredcolumns[$column] = new $column($this);
@@ -62,26 +62,26 @@ class jazzquiz_question_bank_view extends \core_question\bank\view {
         return $this->requiredcolumns;
     }
 
-
     /**
      * Shows the question bank editing interface.
      * @param string $tabname
-     * @param int $page
-     * @param int $perpage
-     * @param string $cat
-     * @param bool $recurse
-     * @param bool $showhidden
-     * @param bool $showquestiontext
-     * @param array $tagids
+     * @param array $pagevars
      * @throws \coding_exception
      */
-    public function display($tabname, $page, $perpage, $cat,
-            $recurse, $showhidden, $showquestiontext, $tagids = []) {
+    public function display($pagevars, $tabname): void {
+        $page = $pagevars['qpage'];
+        $perpage = $pagevars['qperpage'];
+        $cat = $pagevars['cat'];
+        $recurse = $pagevars['recurse'];
+        $showhidden = $pagevars['showhidden'];
+        $showquestiontext = $pagevars['qbshowtext'];
+        $tagids = [];
+        if (!empty($pagevars['qtagids'])) {
+            $tagids = $pagevars['qtagids'];
+        }
+
         global $PAGE;
 
-        if ($this->process_actions_needing_ui()) {
-            return;
-        }
         $contexts = $this->contexts->having_one_edit_tab_cap($tabname);
         list($categoryid, $contextid) = explode(',', $cat);
         $catcontext = \context::instance_by_id($contextid);
@@ -96,15 +96,11 @@ class jazzquiz_question_bank_view extends \core_question\bank\view {
 
         // Continues with list of questions.
         $this->display_question_list(
-            $this->contexts->having_one_edit_tab_cap($tabname),
             $this->baseurl,
             $cat,
-            $this->cm,
             null,
             $page,
-            $perpage,
-            $showhidden,
-            $showquestiontext,
+            $perpage,   
             $this->contexts->having_cap('moodle/question:add')
         );
         /* The following lines adds the button to add questions.
@@ -141,7 +137,7 @@ class jazzquiz_question_bank_view extends \core_question\bank\view {
      * @throws \coding_exception
      * @throws \moodle_exception
      */
-    protected function create_new_question_form($category, $add) {
+    protected function create_new_question_form($category, $add): void {
         echo '<div class="createnewquestion">';
         if ($add) {
             $caption = get_string('create_new_question', 'jazzquiz');

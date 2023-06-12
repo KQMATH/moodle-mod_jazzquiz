@@ -45,7 +45,9 @@ require_sesskey();
 function show_all_improvise_questions(jazzquiz $jazzquiz) {
     $improviser = new improviser($jazzquiz);
     $questionrecords = $improviser->get_all_improvised_question_definitions();
+    debugging( 'show'.$questionrecords );
     if (!$questionrecords) {
+        debugging( 'No improvisation questions' );
         return [
             'status' => 'error',
             'message' => 'No improvisation questions'
