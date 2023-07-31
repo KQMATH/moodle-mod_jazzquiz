@@ -472,8 +472,8 @@
     margin: 4px;
 }
 
-.start-question-menu .MathJax_Display,
-.questionlist li .controls .name .MathJax_Display {
-    text-align: left !important;
-    margin: 0 !important;
+.start-question-menu,
+.questionlist li .controls .name {
+    text-align: left;
+    margin: 0;
 }
