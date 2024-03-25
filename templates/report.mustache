@@ -1,73 +1,154 @@
 {{!
-    @template report
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_jazzquiz/report
+
+    Reports for JazzQuiz sessions.
+
+    Example context (json):
+    {
+        "select_session": {
+            "method": "get",
+            "action": "/mod/jazzquiz/reports.php",
+            "formid": "jazzquiz_select_session_form",
+            "id": "jazzquiz_select_session",
+            "name": "sessionid",
+            "options": [
+                {
+                    "name": "First session",
+                    "value": 1,
+                    "selected": true,
+                    "optgroup": false
+                }
+            ],
+            "params": [
+                {
+                    "name": "id",
+                    "value": 1
+                },
+                {
+                    "name": "action",
+                    "value": "view"
+                }
+            ]
+        },
+        "session": {
+            "slots": [
+                {
+                    "num": 1,
+                    "name": "Example question",
+                    "type": "multichoice",
+                    "description": "Description for this question",
+                    "responses": [
+                        {
+                            "response": "42"
+                        },
+                        {
+                            "response": "I don't know"
+                        }
+                    ]
+                }
+            ],
+            "students": [
+                {
+                    "idnumber": 1,
+                    "name": "Student",
+                    "count": 1
+                },
+                {
+                    "name": "Guest",
+                    "count": 1
+                }
+            ],
+            "count_total": 2,
+            "count_answered": 2,
+            "cmid": 1,
+            "quizid": 1,
+            "id": 1
+        }
+    }
 }}
 <div class="jazzquiz-box">
-    {{# select_session }}
+    {{#select_session}}
     <div>
-        <h3>{{# str }} select_session, jazzquiz {{/ str }}</h3>
+        <h3>{{#str}}select_session, jazzquiz{{/str}}</h3>
         <br>
         <div class="inline-block">
-            {{> core/single_select }}
+            {{>core/single_select}}
         </div>
     </div>
-    {{/ select_session }}
-    {{# session }}
+    {{/select_session}}
+    {{#session}}
         <div id="report_overview_controls" class="jazzquiz-box">
             <button data-action="attendance" class="btn btn-primary">
-                {{# str }} attendance, jazzquiz {{/str}}
+                {{#str}}attendance, jazzquiz{{/str}}
             </button>
             <button data-action="responses" class="btn btn-primary">
-                {{# str }} responses, jazzquiz {{/str}}
+                {{#str}}responses, jazzquiz{{/str}}
             </button>
-            <a href="reports.php?id={{ cmid }}&quizid={{ quizid }}&sessionid={{ id }}&action=export&what=report&download=yes">
-                {{# str }} download_report, jazzquiz {{/str}}
+            <a href="reports.php?id={{cmid}}&quizid={{quizid}}&sessionid={{id}}&action=export&what=report&download=yes">
+                {{#str}}download_report, jazzquiz{{/str}}
             </a>
-            <a href="reports.php?id={{ cmid }}&quizid={{ quizid }}&sessionid={{ id }}&action=delete">
-                {{# str }} delete_report, jazzquiz {{/str}}
+            <a href="reports.php?id={{cmid}}&quizid={{quizid}}&sessionid={{id}}&action=delete">
+                {{#str}}delete_report, jazzquiz{{/str}}
             </a>
         </div>
         <div id="report_overview_responses" class="jazzquiz-response-container hidden">
-            {{# slots }}
+            {{#slots}}
                 <div class="jazzquiz-box">
                     <h2>
                         <span class="filter_mathjaxloader_equation">
-                                {{{ name }}}
+                                {{{name}}}
                         </span>
                     </h2>
                     <span class="filter_mathjaxloader_equation">
-                        {{{ description }}}
+                        {{{description}}}
                     </span>
-                    <table id="responses_wrapper_table_{{ num }}" class="jazzquiz-responses-overview"></table>
+                    <table id="responses_wrapper_table_{{num}}" class="jazzquiz-responses-overview"></table>
                     <br>
-                    <a href="reports.php?id={{ cmid }}&quizid={{ quizid }}&sessionid={{ id }}&slot={{ num }}&action=export&what=question&download=yes">
-                        {{# str }} download_responses, jazzquiz {{/ str }}
+                    <a href="reports.php?id={{cmid}}&quizid={{quizid}}&sessionid={{id}}&slot={{num}}&action=export&what=question&download=yes">
+                        {{#str}}download_responses, jazzquiz{{/str}}
                     </a>
                 </div>
-            {{/ slots }}
+            {{/slots}}
         </div>
         <div id="report_overview_responded" class="jazzquiz-box">
-            <h2>{{# str }} attendance_list, jazzquiz {{/str}}</h2>
+            <h2>{{#str}}attendance_list, jazzquiz{{/str}}</h2>
             <table>
                 <tr>
-                    <th>Student ID</th> 
-                    <th>{{# str }} student, jazzquiz {{/str}}</th>
-                    <th>{{# str }} responses, jazzquiz {{/ str }}</th>
+                    <th>Student ID</th>
+                    <th>{{#str}}student, jazzquiz{{/str}}</th>
+                    <th>{{#str}}responses, jazzquiz{{/str}}</th>
                 </tr>
-                {{# students }}
+                {{#students}}
                     <tr>
-                        <td>{{ idnumber }}</td>
-                        <td>{{ name }}</td>
-                        <td>{{# str }} a_responses, jazzquiz, {{ count }} {{/ str }}</td>
+                        <td>{{idnumber}}</td>
+                        <td>{{name}}</td>
+                        <td>{{#str}}a_responses, jazzquiz, {{count}}{{/str}}</td>
                     </tr>
-                {{/ students }}
+                {{/students}}
             </table>
             <br>
-            <p>{{# str }} a_students_joined_quiz, jazzquiz, {{ count_total }} {{/ str }}</p>
-            <p>{{# str }} a_students_answered, jazzquiz, {{ count_answered }} {{/ str }}</p>
+            <p>{{#str}}a_students_joined_quiz, jazzquiz, {{count_total}}{{/str}}</p>
+            <p>{{#str}}a_students_answered, jazzquiz, {{count_answered}}{{/str}}</p>
             <br>
-            <a href="reports.php?id={{ cmid }}&quizid={{ quizid }}&sessionid={{ id }}&action=export&what=attendance&download=yes">
-                {{# str }} download_attendance_list, jazzquiz {{/ str }}
+            <a href="reports.php?id={{cmid}}&quizid={{quizid}}&sessionid={{id}}&action=export&what=attendance&download=yes">
+                {{#str}}download_attendance_list, jazzquiz{{/str}}
             </a>
         </div>
-    {{/ session }}
+    {{/session}}
 </div>

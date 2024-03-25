@@ -5,23 +5,6 @@
     padding: 20px;
 }
 
-.jazzquiz-box .row {
-    margin: 5px;
-}
-
-.jazzquiz-box .inline-block {
-    display: inline-block;
-}
-
-.jazzquiz-box .span6 {
-    vertical-align: top;
-    width: 49.5%;
-}
-
-.jazzquiz-box .row .span6 {
-    padding: 5px;
-}
-
 .jazzquiz-save-question {
     height: 30px;
 }
@@ -345,44 +328,24 @@
     margin-left: 16px;
 }
 
-.jazzquiz-box .questionlist .dragquestion {
-    width: 10%;
+.dragquestion {
     cursor: move;
-}
-
-.jazzquiz-box .questionlist .icon {
-    vertical-align: middle;
-    height: auto;
-}
-
-.jazzquiz-box .questionlist .name {
-    width: calc(100% - 256px);
-    vertical-align: middle;
 }
 
 .jazzquiz-box .questionlist .name p {
     margin: 0;
 }
 
-.jazzquiz-box .questionlist .controls {
-    width: 100%;
-    vertical-align: middle;
-}
-
 .jazzquiz-box .questionlist li {
-    min-height: 30px;
     margin: 4px;
     padding: 10px;
     border: 1px solid #ddd;
     background: #eee;
 }
 
-.jazzquiz-box .questionlist li div {
-    display: inline-block;
-}
-
-.jazzquiz-box .questionlist li:hover {
-    background: #ddd;
+.jazzquiz-box .questionlist .controls {
+    display: grid;
+    grid-template-columns: 32px 32px auto 32px 32px 32px 32px;
 }
 
 .jazzquiz-box .questionlist li a {
@@ -474,6 +437,6 @@
 
 .start-question-menu .MathJax_Display,
 .questionlist li .controls .name .MathJax_Display {
-    text-align: left ;
-    margin: 0 ;
+    text-align: left;
+    margin: 0;
 }

@@ -1,48 +1,84 @@
 {{!
-    @template edit_question_list
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_jazzquiz/edit_question_list
+
+    Edit the questions used for a quiz.
+
+    Example context (json):
+    {
+        "questions": [
+            {
+                "id": 713,
+                "name": "Example question",
+                "first": true,
+                "last": false,
+                "slot": 1,
+                "editurl": "/mod/jazzquiz/edit.php?questionid=713&action=editquestion",
+                "icon": ""
+            },
+            {
+                "id": 509,
+                "name": "Another question",
+                "first": false,
+                "last": true,
+                "slot": 2,
+                "editurl": "/mod/jazzquiz/edit.php?questionid=509&action=editquestion",
+                "icon": ""
+            }
+        ],
+        "qbank": ""
+    }
 }}
 <div class="generalbox boxaligncenter jazzquiz-box jazzquiz-response-container">
-    <div id="questionrow" class="row">
-        <div class="inline-block span6">
-            <h2>{{# str }} questions, jazzquiz {{/ str }}</h2>
-            <ol class="questionlist">
-                {{# questions }}
-                    <li data-question-id="{{ id }}">
-                        <div class="controls">
-                            <div class="dragquestion">
-                                {{# pix }} i/dragdrop, core {{/ pix }}
-                            </div>
-                            <div class="icon">
-                                {{{ icon }}}
-                            </div>
-                            <div class="name">
-                                <span class="filter_mathjaxloader_equation">
-                                    {{{ name }}}
-                                </span>
-                            </div>
-                            {{# first }}{{# pix }} spacer, core {{/ pix }}{{/ first }}
-                            {{^ first }}
-                                <a class="edit-question-action" data-action="up" data-question-id="{{ id }}">
-                                    {{# pix }} t/up, core, {{# str }} question_move_up, jazzquiz, {{ slot }} {{/ str }} {{/ pix }}
-                                </a>
-                            {{/ first }}
-                            {{# last }}{{# pix }} spacer, core {{/ pix }}{{/ last }}
-                            {{^ last }}
-                                <a class="edit-question-action" data-action="down" data-question-id="{{ id }}">
-                                    {{# pix }} t/down, core, {{# str }} question_move_down, jazzquiz, {{ slot }} {{/ str }} {{/ pix }}
-                                </a>
-                            {{/ last }}
-                            <a href="{{{ editurl }}}">{{# pix }} t/edit, core, {{# str }} edit_question, jazzquiz {{/ str }} {{/ pix }}</a>
-                            <a class="edit-question-action" data-action="delete" data-question-id="{{ id }}">
-                                {{# pix }} t/delete, core, {{# str }} delete_question, jazzquiz, {{ slot }} {{/ str }} {{/ pix }}
-                            </a>
-                        </div>
-                    </li>
-                {{/ questions  }}
-            </ol>
-        </div>
-        <div class="inline-block span6">
-            {{{ qbank }}}
-        </div>
-    </div>
+    <h2>{{#str}}questions, jazzquiz{{/str}}</h2>
+    <ol class="questionlist">
+    {{#questions}}
+        <li data-question-id="{{id}}">
+            <div class="controls">
+                <div class="dragquestion">{{#pix}}i/dragdrop, core{{/pix}}</div>
+                <div class="icon">{{{icon}}}</div>
+                <div class="name">
+                    <span class="filter_mathjaxloader_equation">{{{name}}}</span>
+                </div>
+                {{#first}}{{#pix}}spacer, core{{/pix}}{{/first}}
+                {{^first}}
+                    <a class="edit-question-action" data-action="up" data-question-id="{{id}}">
+                        {{#pix}}t/up, core, {{#str}}question_move_up, jazzquiz, {{slot}}{{/str}}{{/pix}}
+                    </a>
+                {{/first}}
+                {{#last}}{{#pix}}spacer, core{{/pix}}{{/last}}
+                {{^last}}
+                    <a class="edit-question-action" data-action="down" data-question-id="{{id}}">
+                        {{#pix}}t/down, core, {{#str}}question_move_down, jazzquiz, {{slot}}{{/str}}{{/pix}}
+                    </a>
+                {{/last}}
+                <a href="{{{editurl}}}">{{#pix}} t/edit, core, {{#str}}edit_question, jazzquiz{{/str}}{{/pix}}</a>
+                <a class="edit-question-action" data-action="delete" data-question-id="{{id}}">
+                    {{#pix}}t/delete, core, {{#str}}delete_question, jazzquiz, {{slot}}{{/str}}{{/pix}}
+                </a>
+            </div>
+        </li>
+    {{/questions}}
+    </ol>
+</div>
+
+<hr>
+
+<div class="generalbox boxaligncenter jazzquiz-box jazzquiz-response-container">
+    {{{qbank}}}
 </div>

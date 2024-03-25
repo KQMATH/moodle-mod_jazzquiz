@@ -25,7 +25,9 @@
  */
 
 namespace mod_jazzquiz;
-use Exception;
+
+use moodle_url;
+use required_capability_exception;
 
 require_once("../../config.php");
 require_once($CFG->dirroot . '/mod/jazzquiz/lib.php');
@@ -37,11 +39,10 @@ require_login();
 
 /**
  * View the quiz page.
+ *
  * @param jazzquiz $jazzquiz
- * @throws \dml_exception
- * @throws \moodle_exception
  */
-function jazzquiz_view_start_quiz(jazzquiz $jazzquiz) {
+function jazzquiz_view_start_quiz(jazzquiz $jazzquiz): void {
     global $PAGE;
     // Set the quiz view page to the base layout for 1 column layout.
     $PAGE->set_pagelayout('base');
@@ -55,11 +56,11 @@ function jazzquiz_view_start_quiz(jazzquiz $jazzquiz) {
     $session->load_attempts();
     $session->initialize_attempt();
     if ($jazzquiz->is_instructor()) {
-        $session->attempt->data->status = jazzquiz_attempt::PREVIEW;
+        $session->myattempt->status = jazzquiz_attempt::PREVIEW;
     } else {
-        $session->attempt->data->status = jazzquiz_attempt::INPROGRESS;
+        $session->myattempt->status = jazzquiz_attempt::INPROGRESS;
     }
-    $session->attempt->save();
+    $session->myattempt->save();
 
     // Initialize JavaScript for the question engine.
     // TODO: Not certain if this is needed. Should be checked further.
@@ -73,35 +74,23 @@ function jazzquiz_view_start_quiz(jazzquiz $jazzquiz) {
 
 /**
  * View the "Continue session" or "Start session" form.
+ *
  * @param jazzquiz $jazzquiz
- * @throws \dml_exception
- * @throws \moodle_exception
  */
-function jazzquiz_view_default_instructor(jazzquiz $jazzquiz) {
-    global $PAGE, $DB;
+function jazzquiz_view_default_instructor(jazzquiz $jazzquiz): void {
+    global $PAGE;
     $startsessionform = new forms\view\start_session($PAGE->url, ['jazzquiz' => $jazzquiz]);
     $data = $startsessionform->get_data();
     if ($data) {
-        $sessions = $DB->get_records('jazzquiz_sessions', [
-            'jazzquizid' => $jazzquiz->data->id,
-            'sessionopen' => 1
-        ]);
-        // Only create session if not already open.
-        if (empty($sessions)) {
-            $allowguests = isset($data->allowguests) ? 1 : 0;
-            $sessionid = $jazzquiz->create_session($data->session_name, $data->anonymity, $allowguests);
-            if ($sessionid === false) {
-                return;
-            }
-        } else {
+        if ($jazzquiz->is_session_open()) {
             redirect($PAGE->url, 'A session is already open.', 0);
-            // Note: Redirect exits.
+        } else {
+            $jazzquiz->create_session($data->session_name, $data->anonymity, isset($data->allowguests));
         }
         // Redirect to the quiz start.
         $quizstarturl = clone($PAGE->url);
         $quizstarturl->param('action', 'quizstart');
         redirect($quizstarturl, null, 0);
-        // Note: Redirect exits.
     }
     $renderer = $jazzquiz->renderer;
     $renderer->header($jazzquiz, 'view');
@@ -115,10 +104,10 @@ function jazzquiz_view_default_instructor(jazzquiz $jazzquiz) {
 
 /**
  * View the "Join quiz" or "Quiz not running" form.
+ *
  * @param jazzquiz $jazzquiz
- * @throws \moodle_exception
  */
-function jazzquiz_view_default_student(jazzquiz $jazzquiz) {
+function jazzquiz_view_default_student(jazzquiz $jazzquiz): void {
     global $PAGE;
     $studentstartform = new forms\view\student_start_form($PAGE->url);
     $data = $studentstartform->get_data();
@@ -126,7 +115,6 @@ function jazzquiz_view_default_student(jazzquiz $jazzquiz) {
         $quizstarturl = clone($PAGE->url);
         $quizstarturl->param('action', 'quizstart');
         redirect($quizstarturl, null, 0);
-        // Note: Redirect exits.
     }
 
     /** @var output\renderer $renderer */
@@ -143,11 +131,10 @@ function jazzquiz_view_default_student(jazzquiz $jazzquiz) {
 
 /**
  * View appropriate form based on role and session state.
+ *
  * @param jazzquiz $jazzquiz
- * @throws \dml_exception
- * @throws \moodle_exception
  */
-function jazzquiz_view_default(jazzquiz $jazzquiz) {
+function jazzquiz_view_default(jazzquiz $jazzquiz): void {
     if ($jazzquiz->is_instructor()) {
         // Show "Start quiz" form.
         jazzquiz_view_default_instructor($jazzquiz);
@@ -157,18 +144,14 @@ function jazzquiz_view_default(jazzquiz $jazzquiz) {
     }
 }
 
-
 /**
  * Entry point for viewing a quiz.
  */
-function jazzquiz_view() {
+function jazzquiz_view(): void {
     global $PAGE;
-    $cmid = optional_param('id', false, PARAM_INT);
-    if (!$cmid) {
-        // Probably a login redirect that doesn't include any ID.
-        // Go back to the main Moodle page, because we have no info.
-        header('Location: /');
-        exit;
+    $cmid = optional_param('id', 0, PARAM_INT);
+    if ($cmid === 0) {
+        redirect(new moodle_url('/'));
     }
 
     $action = optional_param('action', '', PARAM_ALPHANUM);
@@ -177,14 +160,12 @@ function jazzquiz_view() {
     $iscapable = true;
 
     /*
-     * Checks that the user is authorised for he quiz.
-     * access or not.
+     * Checks that the user is authorised for the quiz access or not.
      * The require_capability() method checks this for students
      * and teacher, but it cannot handle the case where guest
-     * access is allowed.  Hence, if guests are allowed, no
-     * further check is made.
+     * access is allowed.  Hence, if guests are allowed, no further check is made.
      */
-    if (!$session || $session->data->allowguests != 1) {
+    if ($session === null || $session->data->allowguests != 1) {
         try {
             /*
              * require_capability() throws an exception if the user does not
@@ -192,7 +173,7 @@ function jazzquiz_view() {
              * or teacher is not enrolled on the course.
              */
             require_capability('mod/jazzquiz:attempt', $jazzquiz->context);
-        } catch (Exception $e) {
+        } catch (required_capability_exception) {
             // Indicates that the guest user is not allowed to access this session.
             $iscapable = false;
         }
@@ -202,10 +183,10 @@ function jazzquiz_view() {
     $PAGE->set_context($jazzquiz->context);
     $PAGE->set_cm($jazzquiz->cm);
     $modname = get_string('modulename', 'jazzquiz');
-    $quizname = format_string($jazzquiz->data->name, true);
+    $quizname = format_string($jazzquiz->data->name);
     $PAGE->set_title(strip_tags($jazzquiz->course->shortname . ': ' . $modname . ': ' . $quizname));
     $PAGE->set_heading($jazzquiz->course->fullname);
-    $url = new \moodle_url('/mod/jazzquiz/view.php');
+    $url = new moodle_url('/mod/jazzquiz/view.php');
     $url->param('id', $cmid);
     $url->param('quizid', $jazzquiz->data->id);
     $url->param('action', $action);

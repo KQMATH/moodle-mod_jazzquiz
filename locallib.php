@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Local lib
+ * Local lib.
  *
  * @package   mod_jazzquiz
  * @author    John Hoopes <moodle@madisoncreativeweb.com>
@@ -25,18 +25,16 @@
 
 use mod_jazzquiz\jazzquiz;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
+ * View tab.
+ *
  * @param jazzquiz $jazzquiz
  * @param int $id
  * @param array $row
  * @param string $capability
  * @param string $name
- * @throws coding_exception
- * @throws moodle_exception
  */
-function jazzquiz_view_tab(jazzquiz $jazzquiz, int $id, array &$row, string $capability, string $name) {
+function jazzquiz_view_tab(jazzquiz $jazzquiz, int $id, array &$row, string $capability, string $name): void {
     if (has_capability($capability, $jazzquiz->context)) {
         $url = new moodle_url("/mod/jazzquiz/$name.php", ['id' => $id]);
         $row[] = new tabobject($name, $url, get_string($name, 'jazzquiz'));
@@ -45,13 +43,12 @@ function jazzquiz_view_tab(jazzquiz $jazzquiz, int $id, array &$row, string $cap
 
 /**
  * Prints tabs for instructor.
+ *
  * @param jazzquiz $jazzquiz
  * @param string $tab
  * @return string HTML string of the tabs
- * @throws coding_exception
- * @throws moodle_exception
  */
-function jazzquiz_view_tabs(jazzquiz $jazzquiz, string $tab) : string {
+function jazzquiz_view_tabs(jazzquiz $jazzquiz, string $tab): string {
     $tabs = [];
     $row = [];
     $inactive = [];

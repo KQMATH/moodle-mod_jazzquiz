@@ -20,6 +20,10 @@ require_once($CFG->dirroot . '/mod/jazzquiz/backup/moodle2/backup_jazzquiz_steps
 
 /**
  * Backup task that provides all the settings and steps to perform one complete backup.
+ *
+ * @package   mod_jazzquiz
+ * @copyright 2024 NTNU
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class backup_jazzquiz_activity_task extends backup_activity_task {
 

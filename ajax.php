@@ -15,8 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Ajax callback script for dealing with quiz data
- * This callback handles saving questions as well as instructor actions
+ * Ajax callback script for dealing with quiz data.
+ *
+ * This callback handles saving questions as well as instructor actions.
  *
  * @package   mod_jazzquiz
  * @author    Sebastian S. Gundersen <sebastsg@stud.ntnu.no>
@@ -26,6 +27,8 @@
  */
 
 namespace mod_jazzquiz;
+
+use question_bank;
 
 define('AJAX_SCRIPT', true);
 
@@ -39,18 +42,17 @@ require_sesskey();
 
 /**
  * Send a list of all the questions tagged for use with improvisation.
+ *
  * @param jazzquiz $jazzquiz
- * @return mixed[]
+ * @return array
  */
-function show_all_improvise_questions(jazzquiz $jazzquiz) {
+function show_all_improvise_questions(jazzquiz $jazzquiz): array {
     $improviser = new improviser($jazzquiz);
     $questionrecords = $improviser->get_all_improvised_question_definitions();
-    debugging( 'show'.$questionrecords );
     if (!$questionrecords) {
-        debugging( 'No improvisation questions' );
         return [
             'status' => 'error',
-            'message' => 'No improvisation questions'
+            'message' => 'No improvisation questions',
         ];
     }
     $questions = [];
@@ -59,21 +61,22 @@ function show_all_improvise_questions(jazzquiz $jazzquiz) {
             'questionid' => $question->id,
             'jazzquizquestionid' => 0,
             'name' => str_replace('{IMPROV}', '', $question->name),
-            'time' => $jazzquiz->data->defaultquestiontime
+            'time' => $jazzquiz->data->defaultquestiontime,
         ];
     }
     return [
         'status' => 'success',
-        'questions' => $questions
+        'questions' => $questions,
     ];
 }
 
 /**
  * Send a list of all the questions added to the quiz.
+ *
  * @param jazzquiz $jazzquiz
- * @return mixed[]
+ * @return array
  */
-function show_all_jump_questions(jazzquiz $jazzquiz) {
+function show_all_jump_questions(jazzquiz $jazzquiz): array {
     global $DB;
     $sql = 'SELECT q.id AS id, q.name AS name, jq.questiontime AS time, jq.id AS jqid';
     $sql .= '  FROM {jazzquiz_questions} jq';
@@ -87,21 +90,22 @@ function show_all_jump_questions(jazzquiz $jazzquiz) {
             'questionid' => $question->id,
             'jazzquizquestionid' => $question->jqid,
             'name' => $question->name,
-            'time' => $question->time
+            'time' => $question->time,
         ];
     }
     return [
         'status' => 'success',
-        'questions' => $questions
+        'questions' => $questions,
     ];
 }
 
 /**
  * Get the form for the current question.
+ *
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function get_question_form(jazzquiz_session $session) {
+function get_question_form(jazzquiz_session $session): array {
     $session->load_session_questions();
     $slot = optional_param('slot', 0, PARAM_INT);
     if ($slot === 0) {
@@ -111,12 +115,12 @@ function get_question_form(jazzquiz_session $session) {
     $js = '';
     $css = [];
     $isalreadysubmitted = true;
-    if (!$session->attempt->has_responded($slot)) {
+    if (!$session->myattempt->has_responded($slot)) {
         $jazzquiz = $session->jazzquiz;
         /** @var output\renderer $renderer */
         $renderer = $jazzquiz->renderer;
         $isinstructor = $jazzquiz->is_instructor();
-        list($html, $js, $css) = $renderer->render_question_form($slot, $session->attempt, $jazzquiz, $isinstructor);
+        list($html, $js, $css) = $renderer->render_question_form($slot, $session->myattempt, $jazzquiz, $isinstructor);
         $isalreadysubmitted = false;
     }
     $qtype = $session->get_question_type_by_slot($slot);
@@ -127,16 +131,17 @@ function get_question_form(jazzquiz_session $session) {
         'css' => $css,
         'question_type' => $qtype,
         'is_already_submitted' => $isalreadysubmitted,
-        'voteable' => !in_array($qtype, $voteable)
+        'voteable' => !in_array($qtype, $voteable),
     ];
 }
 
 /**
  * Start a new question.
+ *
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function start_question(jazzquiz_session $session) {
+function start_question(jazzquiz_session $session): array {
     $session->load_session_questions();
     $session->load_attempts();
     $method = required_param('method', PARAM_ALPHA);
@@ -148,7 +153,9 @@ function start_question(jazzquiz_session $session) {
             $jazzquizquestionid = optional_param('jazzquizquestionid', 0, PARAM_INT);
             if ($jazzquizquestionid !== 0) {
                 $jazzquizquestion = $session->jazzquiz->get_question_by_id($jazzquizquestionid);
-                $session->data->slot = $jazzquizquestion->data->slot;
+                if ($jazzquizquestion) {
+                    $session->data->slot = $jazzquizquestion->data->slot;
+                }
             }
             break;
         case 'repoll':
@@ -156,7 +163,7 @@ function start_question(jazzquiz_session $session) {
             if ($lastslot === 0) {
                 return [
                     'status' => 'error',
-                    'message' => 'Nothing to repoll.'
+                    'message' => 'Nothing to repoll.',
                 ];
             }
             $questionid = $session->questions[$lastslot]->questionid;
@@ -167,7 +174,7 @@ function start_question(jazzquiz_session $session) {
             if ($session->data->slot >= $lastslot) {
                 return [
                     'status' => 'error',
-                    'message' => 'No next question.'
+                    'message' => 'No next question.',
                 ];
             }
             $session->data->slot++;
@@ -190,14 +197,14 @@ function start_question(jazzquiz_session $session) {
         default:
             return [
                 'status' => 'error',
-                'message' => "Invalid method $method"
+                'message' => "Invalid method $method",
             ];
     }
     list($success, $questiontime) = $session->start_question($questionid, $questiontime);
     if (!$success) {
         return [
             'status' => 'error',
-            'message' => "Failed to start question $questionid for session"
+            'message' => "Failed to start question $questionid for session",
         ];
     }
 
@@ -207,20 +214,21 @@ function start_question(jazzquiz_session $session) {
     return [
         'status' => 'success',
         'questiontime' => $questiontime,
-        'delay' => $session->data->nextstarttime - time()
+        'delay' => $session->data->nextstarttime - time(),
     ];
 }
 
 /**
  * Start the quiz.
+ *
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function start_quiz(jazzquiz_session $session) {
+function start_quiz(jazzquiz_session $session): array {
     if ($session->data->status !== 'notrunning') {
         return [
             'status' => 'error',
-            'message' => 'Quiz is already running'
+            'message' => 'Quiz is already running',
         ];
     }
     $session->data->status = 'preparing';
@@ -230,15 +238,16 @@ function start_quiz(jazzquiz_session $session) {
 
 /**
  * Submit a response for the current question.
+ *
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function save_question(jazzquiz_session $session) {
-    $attempt = $session->attempt;
+function save_question(jazzquiz_session $session): array {
+    $attempt = $session->myattempt;
     if (!$attempt->belongs_to_current_user()) {
         return [
             'status' => 'error',
-            'message' => 'Invalid user'
+            'message' => 'Invalid user',
         ];
     }
     $session->load_session_questions();
@@ -251,22 +260,23 @@ function save_question(jazzquiz_session $session) {
     }
     return [
         'status' => 'success',
-        'feedback' => $feedback
+        'feedback' => $feedback,
     ];
 }
 
 /**
  * Start a vote.
+ *
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function run_voting(jazzquiz_session $session) {
+function run_voting(jazzquiz_session $session): array {
     $questions = required_param('questions', PARAM_RAW);
     $questions = json_decode(urldecode($questions), true);
     if (!$questions) {
         return [
             'status' => 'error',
-            'message' => 'Failed to decode questions'
+            'message' => 'Failed to decode questions',
         ];
     }
     $qtype = optional_param('question_type', '', PARAM_ALPHANUM);
@@ -283,10 +293,11 @@ function run_voting(jazzquiz_session $session) {
 
 /**
  * Save a vote.
+ *
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function save_vote(jazzquiz_session $session) {
+function save_vote(jazzquiz_session $session): array {
     $voteid = required_param('vote', PARAM_INT);
     $vote = new jazzquiz_vote($session->data->id);
     $status = $vote->save_vote($voteid);
@@ -296,9 +307,9 @@ function save_vote(jazzquiz_session $session) {
 /**
  * Get the vote results.
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function get_vote_results(jazzquiz_session $session) {
+function get_vote_results(jazzquiz_session $session): array {
     $session->load_session_questions();
     $session->load_attempts();
     $slot = count($session->questions);
@@ -306,16 +317,17 @@ function get_vote_results(jazzquiz_session $session) {
     $votes = $vote->get_results();
     return [
         'answers' => $votes,
-        'total_students' => $session->get_student_count()
+        'total_students' => $session->get_student_count(),
     ];
 }
 
 /**
  * End the current question.
+ *
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function end_question($session) {
+function end_question(jazzquiz_session $session): array {
     $session->data->status = 'reviewing';
     $session->save();
     return ['status' => 'success'];
@@ -323,20 +335,22 @@ function end_question($session) {
 
 /**
  * Get the correct answer for the current question.
+ *
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function get_right_response(jazzquiz_session $session) {
+function get_right_response(jazzquiz_session $session): array {
     $session->load_session_questions();
     return ['right_answer' => $session->get_question_right_response()];
 }
 
 /**
  * Close a session.
+ *
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function close_session(jazzquiz_session $session) {
+function close_session(jazzquiz_session $session): array {
     $session->load_attempts();
     $session->end_session();
     return ['status' => 'success'];
@@ -344,10 +358,11 @@ function close_session(jazzquiz_session $session) {
 
 /**
  * Get the results for a session.
+ *
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function get_results(jazzquiz_session $session) {
+function get_results(jazzquiz_session $session): array {
     $session->load_session_questions();
     $session->load_attempts();
     $slot = count($session->questions);
@@ -365,16 +380,17 @@ function get_results(jazzquiz_session $session) {
         'responses' => $results['responses'],
         'responded' => $results['responded'],
         'total_students' => $results['student_count'],
-        'merge_count' => $mergecount
+        'merge_count' => $mergecount,
     ];
 }
 
 /**
  * Merge a response into another.
+ *
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function merge_responses(jazzquiz_session $session) {
+function merge_responses(jazzquiz_session $session): array {
     $session->load_session_questions();
     $slot = optional_param('slot', count($session->questions), PARAM_INT);
     if (!isset($session->questions[$slot])) {
@@ -388,10 +404,11 @@ function merge_responses(jazzquiz_session $session) {
 
 /**
  * Undo the last merge.
+ *
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function undo_merge(jazzquiz_session $session) {
+function undo_merge(jazzquiz_session $session): array {
     $session->load_session_questions();
     $slot = optional_param('slot', count($session->questions), PARAM_INT);
     if (!isset($session->questions[$slot])) {
@@ -403,9 +420,10 @@ function undo_merge(jazzquiz_session $session) {
 
 /**
  * Convert STACK (Maxima) string to LaTeX format.
- * @return mixed[]
+ *
+ * @return array
  */
-function stack_to_latex() {
+function stack_to_latex(): array {
     global $DB;
     $input = required_param('input', PARAM_RAW);
     $input = urldecode($input);
@@ -414,28 +432,29 @@ function stack_to_latex() {
         return [
             'message' => 'STACK question not found.',
             'latex' => $input,
-            'original' => $input
+            'original' => $input,
         ];
     }
 
     /** @var \qtype_stack_question $question */
-    $question = \question_bank::load_question($question->id);
+    $question = question_bank::load_question($question->id);
     $question->initialise_question_from_seed();
     $state = $question->get_input_state('ans1', ['ans1' => $input]);
     $latex = $state->contentsdisplayed;
 
     return [
         'latex' => $latex,
-        'original' => $input
+        'original' => $input,
     ];
 }
 
 /**
  * Retrieve the current state of the session.
+ *
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function session_info(jazzquiz_session $session) {
+function session_info(jazzquiz_session $session): array {
     global $DB;
     switch ($session->data->status) {
         // Just a generic response with the state.
@@ -445,7 +464,7 @@ function session_info(jazzquiz_session $session) {
                 $session->load_attempts();
                 return [
                     'status' => $session->data->status,
-                    'student_count' => $session->get_student_count()
+                    'student_count' => $session->get_student_count(),
                 ];
             }
             // Fall-through.
@@ -453,7 +472,7 @@ function session_info(jazzquiz_session $session) {
         case 'reviewing':
             return [
                 'status' => $session->data->status,
-                'slot' => $session->data->slot // For the preplanned questions.
+                'slot' => $session->data->slot, // For the preplanned questions.
             ];
 
         case 'voting':
@@ -466,7 +485,7 @@ function session_info(jazzquiz_session $session) {
                     'text' => $voteoption->attempt,
                     'id' => $voteoption->id,
                     'question_type' => $voteoption->qtype,
-                    'content_id' => "vote_answer_label_$i"
+                    'content_id' => "vote_answer_label_$i",
                 ];
                 $html .= '<label>';
                 $html .= '<input class="jazzquiz-select-vote" type="radio" name="vote" value="' . $voteoption->id . '">';
@@ -479,7 +498,7 @@ function session_info(jazzquiz_session $session) {
             return [
                 'status' => 'voting',
                 'html' => $html,
-                'options' => $options
+                'options' => $options,
             ];
 
         // Send the currently active question.
@@ -487,87 +506,69 @@ function session_info(jazzquiz_session $session) {
             return [
                 'status' => 'running',
                 'questiontime' => $session->data->currentquestiontime,
-                'delay' => $session->data->nextstarttime - time()
+                'delay' => $session->data->nextstarttime - time(),
             ];
 
         // This should not be reached, but if it ever is, let's just assume the quiz is not running.
         default:
             return [
                 'status' => 'notrunning',
-                'message' => 'Unknown error. State: ' . $session->data->status
+                'message' => 'Unknown error. State: ' . $session->data->status,
             ];
     }
 }
 
 /**
  * Handle an instructor request.
+ *
  * @param string $action
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function handle_instructor_request(string $action, jazzquiz_session $session) : array {
-    switch ($action) {
-        case 'start_quiz':
-            return start_quiz($session);
-        case 'get_question_form':
-            return get_question_form($session);
-        case 'save_question':
-            return save_question($session);
-        case 'list_improvise_questions':
-            return show_all_improvise_questions($session->jazzquiz);
-        case 'list_jump_questions':
-            return show_all_jump_questions($session->jazzquiz);
-        case 'run_voting':
-            return run_voting($session);
-        case 'get_vote_results':
-            return get_vote_results($session);
-        case 'get_results':
-            return get_results($session);
-        case 'start_question':
-            return start_question($session);
-        case 'end_question':
-            return end_question($session);
-        case 'get_right_response':
-            return get_right_response($session);
-        case 'merge_responses':
-            return merge_responses($session);
-        case 'undo_merge':
-            return undo_merge($session);
-        case 'close_session':
-            return close_session($session);
-        case 'info':
-            return session_info($session);
-        default:
-            return ['status' => 'error', 'message' => 'Invalid action'];
-    }
+function handle_instructor_request(string $action, jazzquiz_session $session): array {
+    return match ($action) {
+        'start_quiz' => start_quiz($session),
+        'get_question_form' => get_question_form($session),
+        'save_question' => save_question($session),
+        'list_improvise_questions' => show_all_improvise_questions($session->jazzquiz),
+        'list_jump_questions' => show_all_jump_questions($session->jazzquiz),
+        'run_voting' => run_voting($session),
+        'get_vote_results' => get_vote_results($session),
+        'get_results' => get_results($session),
+        'start_question' => start_question($session),
+        'end_question' => end_question($session),
+        'get_right_response' => get_right_response($session),
+        'merge_responses' => merge_responses($session),
+        'undo_merge' => undo_merge($session),
+        'close_session' => close_session($session),
+        'info' => session_info($session),
+        default => ['status' => 'error', 'message' => 'Invalid action'],
+    };
 }
 
 /**
  * Handle a student request.
+ *
  * @param string $action
  * @param jazzquiz_session $session
- * @return mixed[]
+ * @return array
  */
-function handle_student_request(string $action, jazzquiz_session $session) : array {
-    switch ($action) {
-        case 'save_question':
-            return save_question($session);
-        case 'save_vote':
-            return save_vote($session);
-        case 'get_question_form':
-            return get_question_form($session);
-        case 'info':
-            return session_info($session);
-        default:
-            return ['status' => 'error', 'message' => 'Invalid action'];
-    }
+function handle_student_request(string $action, jazzquiz_session $session): array {
+    return match ($action) {
+        'save_question' => save_question($session),
+        'save_vote' => save_vote($session),
+        'get_question_form' => get_question_form($session),
+        'info' => session_info($session),
+        default => ['status' => 'error', 'message' => 'Invalid action'],
+    };
 }
 
 /**
  * The entry point to handle instructor and student actions.
- * @return mixed[]
+ *
+ * @return array
  */
-function jazzquiz_ajax() {
+function jazzquiz_ajax(): array {
     $action = required_param('action', PARAM_ALPHANUMEXT);
 
     // TODO: Better solution if more non-session actions are added.
@@ -583,21 +584,21 @@ function jazzquiz_ajax() {
     if (!$session->data->sessionopen) {
         return [
             'status' => 'sessionclosed',
-            'message' => 'Session is closed'
+            'message' => 'Session is closed',
         ];
     }
 
-    $session->load_attempt();
-    if (!$session->attempt) {
+    $session->load_my_attempt();
+    if (!$session->myattempt) {
         return [
             'status' => 'error',
-            'message' => 'No attempt found'
+            'message' => 'No attempt found',
         ];
     }
-    if (!$session->attempt->is_active()) {
+    if (!$session->myattempt->is_active()) {
         return [
             'status' => 'error',
-            'message' => 'This attempt is not in progress'
+            'message' => 'This attempt is not in progress',
         ];
     }
 

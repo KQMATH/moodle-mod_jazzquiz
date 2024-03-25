@@ -14,14 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Define the complete choice structure for backup, with file and id annotations.
+ *
+ * @package   mod_jazzquiz
+ * @copyright 2024 NTNU
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class backup_jazzquiz_activity_structure_step extends backup_questions_activity_structure_step {
 
-    protected function define_structure() {
+    /**
+     * Defines the structure of the backup element.
+     *
+     * @return backup_nested_element
+     */
+    protected function define_structure(): backup_nested_element {
 
         // To know if we are including userinfo.
         $userinfo = $this->get_setting_value('userinfo');
@@ -36,14 +43,14 @@ class backup_jazzquiz_activity_structure_step extends backup_questions_activity_
             'defaultquestiontime',
             'waitforquestiontime',
             'cfganonymity',
-            'cfgallowguests'
+            'cfgallowguests',
         ]);
 
         $questions = new backup_nested_element('questions');
         $question = new backup_nested_element('question', ['id'], [
             'questionid',
             'questiontime',
-            'slot'
+            'slot',
         ]);
 
         $sessions = new backup_nested_element('sessions');
@@ -57,7 +64,7 @@ class backup_jazzquiz_activity_structure_step extends backup_questions_activity_
             'nextstarttime',
             'created',
             'anonymity',
-            'allowguests'
+            'allowguests',
         ]);
 
         $sessionquestions = new backup_nested_element('sessionquestions');
@@ -65,7 +72,7 @@ class backup_jazzquiz_activity_structure_step extends backup_questions_activity_
             'sessionid',
             'questionid',
             'questiontime',
-            'slot'
+            'slot',
         ]);
 
         $attempts = new backup_nested_element('attempts');
@@ -79,7 +86,7 @@ class backup_jazzquiz_activity_structure_step extends backup_questions_activity_
             'timestart',
             'timefinish',
             'timemodified',
-            'guestsession'
+            'guestsession',
         ]);
         $this->add_question_usages($attempt, 'questionengid');
 
@@ -89,7 +96,7 @@ class backup_jazzquiz_activity_structure_step extends backup_questions_activity_
             'slot',
             'ordernum',
             'original',
-            'merged'
+            'merged',
         ]);
 
         $votes = new backup_nested_element('votes');
@@ -100,14 +107,14 @@ class backup_jazzquiz_activity_structure_step extends backup_questions_activity_
             'finalcount',
             'userlist',
             'qtype',
-            'slot'
+            'slot',
         ]);
 
         $attendances = new backup_nested_element('attendances');
         $attendance = new backup_nested_element('attendance', ['id'], [
             'sessionid',
             'userid',
-            'numresponses'
+            'numresponses',
         ]);
 
         // Build the tree.
@@ -140,7 +147,7 @@ class backup_jazzquiz_activity_structure_step extends backup_questions_activity_
             $merge->set_source_table('jazzquiz_merges', ['sessionid' => backup::VAR_PARENTID]);
             $vote->set_source_table('jazzquiz_votes', [
                 'jazzquizid' => backup::VAR_ACTIVITYID,
-                'sessionid' => backup::VAR_PARENTID
+                'sessionid' => backup::VAR_PARENTID,
             ]);
         }
 

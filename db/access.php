@@ -14,94 +14,70 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
-/* Capability definitions for the jazzquiz module.
+/**
+ * Capability definitions for the jazzquiz module.
  *
- * The capabilities are loaded into the database table when the module is
- * installed or updated. Whenever the capability definitions are updated,
- * the module version number should be bumped up.
- *
- * The system has four possible values for a capability:
- * CAP_ALLOW, CAP_PREVENT, CAP_PROHIBIT, and inherit (not set).
- *
- * CAPABILITY NAMING CONVENTION
- *
- * It is important that capability names are unique. The naming convention
- * Capabilities specific to modules and blocks is as follows:
- *   [mod/block]/<component_name>:<capabilityname>
- *
- * component_name should be the same as the directory name of the mod or block.
- *
- * Core moodle capabilities are defined thus:
- *   moodle/<capabilityclass>:<capabilityname>
- *
- * Examples:
- *   mod/forum:viewpost
- *   block/recent_activity:view
- *   moodle/site:deleteuser
- *
- * The variable name for the capability definitions array follows the format:
- *   $<componenttype>_<component_name>_capabilities
- *
- * For the core capabilities, the variable is $moodle_capabilities.
+ * @package mod_jazzquiz
+ * @copyright 2024 NTNU
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die();
 
 $capabilities = [
     // Can start a quiz and move on to the next question.
     // NB: must have 'attempt' as well to be able to see the questions.
     'mod/jazzquiz:control' => [
-        'captype'      => 'write',
+        'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'legacy'       => [
-            'teacher'        => CAP_ALLOW,
+        'legacy' => [
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
-        ]
+            'manager' => CAP_ALLOW,
+        ],
     ],
 
     // Can try to answer the quiz.
     'mod/jazzquiz:attempt' => [
-        'captype'      => 'write',
+        'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'legacy'       => [
-            'student'        => CAP_ALLOW,
-            'teacher'        => CAP_ALLOW,
+        'legacy' => [
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
-        ]
+            'manager' => CAP_ALLOW,
+        ],
     ],
 
     // Can see who gave what answer.
     'mod/jazzquiz:seeresponses' => [
-        'captype'      => 'read',
+        'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
-        'legacy'       => [
-            'teacher'        => CAP_ALLOW,
+        'legacy' => [
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
-        ]
+            'manager' => CAP_ALLOW,
+        ],
     ],
 
     // Can add / delete / update questions.
     'mod/jazzquiz:editquestions' => [
-        'captype'      => 'write',
+        'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'legacy'       => [
+        'legacy' => [
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
-        ]
+            'manager' => CAP_ALLOW,
+        ],
     ],
 
     // Can add an instance of this module to a course.
     'mod/jazzquiz:addinstance' => [
-        'captype'      => 'write',
+        'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'legacy'       => [
+        'legacy' => [
             'editingteacher' => CAP_ALLOW,
-            'coursecreator'  => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
-        ]
+            'coursecreator' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
     ],
 ];
-

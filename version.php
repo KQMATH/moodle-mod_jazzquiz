@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * JazzQuiz version information.
+ *
  * @package   mod_jazzquiz
  * @author    Sebastian S. Gundersen <sebastian@sgundersen.com>
  * @author    André Storhaug <andr3.storhaug@gmail.com>

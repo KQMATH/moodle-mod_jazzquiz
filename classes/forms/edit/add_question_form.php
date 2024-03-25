@@ -29,8 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/formslib.php');
 
 /**
- * Moodle form for confirming question add and get the time for the question
- * to appear on the page.
+ * Moodle form for confirming question add and get the time for the question to appear on the page.
  *
  * @package     mod_jazzquiz
  * @author      John Hoopes <moodle@madisoncreativeweb.com>
@@ -40,19 +39,19 @@ require_once($CFG->libdir . '/formslib.php');
 class add_question_form extends \moodleform {
 
     /**
-     * Overriding parent function to account for namespace in the class name
-     * so that client validation works
-     * @return mixed|string
+     * Aaccount for namespace in the class name such that client validation works.
+     *
+     * @return string
      */
-    protected function get_form_identifier() {
+    protected function get_form_identifier(): string {
         $class = get_class($this);
         return preg_replace('/[^a-z0-9_]/i', '_', $class);
     }
 
     /**
-     * Adds form fields to the form
+     * Adds form fields to the form.
      */
-    public function definition() {
+    public function definition(): void {
         $mform = $this->_form;
         $jazzquiz = $this->_customdata['jazzquiz'];
         $defaulttime = $jazzquiz->data->defaultquestiontime;
@@ -80,12 +79,13 @@ class add_question_form extends \moodleform {
     }
 
     /**
-     * Validate question time
+     * Validate question time.
+     *
      * @param array $data
      * @param array $files
      * @return array $errors
      */
-    public function validation($data, $files) {
+    public function validation($data, $files): array {
         $errors = [];
         if (!filter_var($data['questiontime'], FILTER_VALIDATE_INT) && $data['questiontime'] !== 0) {
             $errors['questiontime'] = get_string('invalid_question_time', 'jazzquiz');

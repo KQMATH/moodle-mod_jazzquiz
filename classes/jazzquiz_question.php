@@ -16,9 +16,11 @@
 
 namespace mod_jazzquiz;
 
-defined('MOODLE_INTERNAL') || die();
+use stdClass;
 
 /**
+ * A question slot in a JazzQuiz.
+ *
  * @package     mod_jazzquiz
  * @author      Sebastian S. Gundersen <sebastsg@stud.ntnu.no>
  * @copyright   2018 NTNU
@@ -26,23 +28,30 @@ defined('MOODLE_INTERNAL') || die();
  */
 class jazzquiz_question {
 
-    /** @var \stdClass $data */
-    public $data;
+    /** @var stdClass */
+    public stdClass $data;
 
-    /** @var \stdClass $question Question definition data */
-    public $question;
+    /** @var ?stdClass Question definition data */
+    public ?stdClass $question;
 
     /**
-     * @param \stdClass $data jazzquiz_question
+     * Constructor.
+     *
+     * @param stdClass $data jazzquiz_question
      */
-    public function __construct(\stdClass $data) {
+    public function __construct(stdClass $data) {
         global $DB;
         $this->data = $data;
-        $this->question = $DB->get_record('question', ['id' => $data->questionid]);
+        $this->question = $DB->get_record('question', ['id' => $data->questionid]) ?: null;
     }
 
-    public function is_valid() {
-        return $this->question !== false;
+    /**
+     * Check if the question exists.
+     *
+     * @return bool
+     */
+    public function is_valid(): bool {
+        return $this->question !== null;
     }
 
 }

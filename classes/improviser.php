@@ -16,9 +16,13 @@
 
 namespace mod_jazzquiz;
 
-defined('MOODLE_INTERNAL') || die();
+use context_module;
+use core_question\local\bank\question_edit_contexts;
+use stdClass;
 
 /**
+ * Handles the improvisation aspect of JazzQuiz.
+ *
  * @package     mod_jazzquiz
  * @author      Sebastian S. Gundersen <sebastsg@stud.ntnu.no>
  * @copyright   2018 NTNU
@@ -26,10 +30,12 @@ defined('MOODLE_INTERNAL') || die();
  */
 class improviser {
 
-    /** @var jazzquiz $jazzquiz */
-    private $jazzquiz;
+    /** @var jazzquiz */
+    private jazzquiz $jazzquiz;
 
     /**
+     * Constructor.
+     *
      * @param jazzquiz $jazzquiz
      */
     public function __construct(jazzquiz $jazzquiz) {
@@ -38,10 +44,11 @@ class improviser {
 
     /**
      * Check whether a question type exists or not.
+     *
      * @param string $name Name of the question type
      * @return bool
      */
-    private function question_type_exists(string $name) : bool {
+    private function question_type_exists(string $name): bool {
         $qtypes = \core_plugin_manager::instance()->get_plugins_of_type('qtype');
         foreach ($qtypes as $qtype) {
             if ($qtype->name === $name) {
@@ -53,17 +60,15 @@ class improviser {
 
     /**
      * Get all the improvised question records in our activity's question category.
-     * @return \stdClass[]|false
+     *
+     * @return stdClass[]
      */
-    public function get_all_improvised_question_definitions() {
+    public function get_all_improvised_question_definitions(): array {
         global $DB;
         $questions = [];
-        $context = \context_module::instance($this->jazzquiz->cm->id);
-        $parts = explode('/', $context->path);
-        debugging( "get_all_improvised: ".$parts );
-        foreach ($parts as $part) {
+        $context = context_module::instance($this->jazzquiz->cm->id);
+        foreach (explode('/', $context->path) as $part) {
             // Selecting name first, to prevent duplicate improvise questions.
-            debugging( "get_all_improvised: ".$part );
             $sql = "SELECT q.name,
                            q.id
                       FROM {question} q
@@ -78,21 +83,25 @@ class improviser {
                        AND ctx.path LIKE :path
                      WHERE q.name LIKE :prefix
                   ORDER BY q.name";
-            $questions += $DB->get_records_sql($sql, ['prefix' => '{IMPROV}%', 'path' => '%/' . $part]);
+            $questions[] = $DB->get_records_sql($sql, [
+                'prefix' => '{IMPROV}%',
+                'path' => "%/$part",
+            ]);
         }
-        return $questions ? $questions : false;
+        return $questions;
     }
 
     /**
      * Get the specified question name is an improvisational question.
+     *
      * @param string $name The name of the improvised question without the prefix.
-     * @return \stdClass|false
+     * @return ?stdClass
      */
-    private function get_improvised_question_definition(string $name) {
+    private function get_improvised_question_definition(string $name): ?stdClass {
         global $DB;
         $category = $this->get_default_question_category();
         if (!$category) {
-            return false;
+            return null;
         }
         $sql = "SELECT qbe.id
                   FROM {question_bank_entries} qbe
@@ -101,32 +110,29 @@ class improviser {
                  WHERE qbe.questioncategoryid = :catid
                    AND q.name LIKE :name";
         $questions = $DB->get_records_sql($sql, ['catid' => $category->id, 'name' => '{IMPROV}' . $name]);
-        if (!$questions) {
-            return false;
-        }
-        return reset($questions);
+        return empty($questions) ? null : reset($questions);
     }
 
     /**
      * Deletes the improvised question definition with matching name if it exists.
+     *
      * @param string $name of question
      */
-    private function delete_improvised_question(string $name) {
+    private function delete_improvised_question(string $name): void {
         $question = $this->get_improvised_question_definition($name);
-        if ($question !== false) {
+        if ($question !== null) {
             question_delete_question($question->id);
         }
     }
 
     /**
      * Returns the default question category for the activity.
-     * @return object
      */
-    private function get_default_question_category() {
-        $context = \context_module::instance($this->jazzquiz->cm->id);
+    private function get_default_question_category(): stdClass|bool|null {
+        $context = context_module::instance($this->jazzquiz->cm->id);
         $category = question_get_default_category($context->id);
         if (!$category) {
-            $contexts = new \core_question\local\bank\question_edit_contexts($context);
+            $contexts = new question_edit_contexts($context);
             $category = question_make_default_categories($contexts->all());
         }
         return $category;
@@ -134,16 +140,15 @@ class improviser {
 
     /**
      * Create a question bank entry for the database.
-     * @return \stdClass | null
+     *
+     * @return ?stdClass
      */
-    private function make_generic_question_bank_entry() {
+    private function make_generic_question_bank_entry(): ?stdClass {
         $category = $this->get_default_question_category();
         if (!$category) {
             return null;
         }
-
-        /* debugging( "Making generic question bank entry." ) ; */
-        $question = new \stdClass();
+        $question = new stdClass();
         $question->questioncategoryid = $category->id;
         $question->ownerid = null;
         $question->idnumber = null;
@@ -152,21 +157,20 @@ class improviser {
 
     /**
      * Create a question database object.
+     *
      * @param string $qtype What question type to create
      * @param string $name The name of the question to create
-     * @return \stdClass | null
+     * @return ?stdClass
      */
-    private function make_generic_question_definition(string $qtype, string $name) {
+    private function make_generic_question_definition(string $qtype, string $name): ?stdClass {
         if (!$this->question_type_exists($qtype)) {
-            /* debugging( "make_generic_question_definition: question type does not exist" ) ; */
             return null;
         }
-        $existing = $this->get_improvised_question_definition($name);
-        if ($existing !== false) {
-            /* debugging( "make_generic_question_definition: existing: ".$name ) ; */
+        $existingdefinition = $this->get_improvised_question_definition($name);
+        if ($existingdefinition !== null) {
             return null;
         }
-        $question = new \stdClass();
+        $question = new stdClass();
         $question->parent = 0;
         $question->name = '{IMPROV}' . $name;
         $question->questiontext = '&nbsp;';
@@ -187,11 +191,12 @@ class improviser {
 
     /**
      * Create a multichoice options database object.
+     *
      * @param int $questionid The ID of the question to make options for
-     * @return \stdClass
+     * @return stdClass
      */
-    private function make_multichoice_options($questionid) {
-        $options = new \stdClass();
+    private function make_multichoice_options(int $questionid): stdClass {
+        $options = new stdClass();
         $options->questionid = $questionid;
         $options->layout = 0;
         $options->single = 1;
@@ -209,11 +214,12 @@ class improviser {
 
     /**
      * Make a short answer question options database object.
+     *
      * @param int $questionid The ID of the question to make options for
-     * @return \stdClass
+     * @return stdClass
      */
-    private function make_shortanswer_options($questionid) {
-        $options = new \stdClass();
+    private function make_shortanswer_options(int $questionid): stdClass {
+        $options = new stdClass();
         $options->questionid = $questionid;
         $options->usecase = 0;
         return $options;
@@ -221,13 +227,14 @@ class improviser {
 
     /**
      * Make an answer for a question.
+     *
      * @param int $questionid The ID of the question to make the answer for
      * @param string $format Which format the answer has
      * @param string $answertext The answer text
-     * @return \stdClass
+     * @return stdClass
      */
-    private function make_generic_question_answer($questionid, string $format, string $answertext) {
-        $answer = new \stdClass();
+    private function make_generic_question_answer(int $questionid, string $format, string $answertext): stdClass {
+        $answer = new stdClass();
         $answer->question = $questionid;
         $answer->answer = $answertext;
         $answer->answerformat = $format;
@@ -239,24 +246,23 @@ class improviser {
 
     /**
      * Insert a multichoice question to the database.
+     *
      * @param string $name The name of the question
      * @param string[] $answers Answers to the question
      */
-    private function insert_multichoice_question_definition(string $name, array $answers) {
+    private function insert_multichoice_question_definition(string $name, array $answers): void {
         global $DB;
-        /* debugging("insert_multichoice_question_definition: ".$name ) ; */
         $question = $this->make_generic_question_definition('multichoice', $name);
         if (!$question) {
             return;
         }
-        /* debugging("insert_multichoice_question_definition 2") ; */
         $qbankentry = $this->make_generic_question_bank_entry();
         if (!$qbankentry) {
             return;
         }
         $question->id = $DB->insert_record('question', $question);
         $qbankentry->id = $DB->insert_record('question_bank_entries', $qbankentry);
-        $this->insert_question_version( $qbankentry->id, $question->id );
+        $this->insert_question_version($qbankentry->id, $question->id);
         // Add options.
         $options = $this->make_multichoice_options($question->id);
         $DB->insert_record('qtype_multichoice_options', $options);
@@ -265,32 +271,32 @@ class improviser {
             $qanswer = $this->make_generic_question_answer($question->id, 1, $answer);
             $DB->insert_record('question_answers', $qanswer);
         }
-        /* debugging( "Question ID ".$question->id ); */
     }
 
-    /* Create a question version database object, linking the given question
-     * and question bank entry.
+    /**
+     * Create a question version database object, linking the given question and question bank entry.
+     *
      * @param int $qbankid The ID of the question banke entry
      * @param int $qid The ID of the question
-     * @return \stdClass
+     * @return stdClass
      */
-    private function insert_question_version(int $qbankid, int $qid) {
+    private function insert_question_version(int $qbankid, int $qid): stdClass {
         global $DB;
-        $qv = new \stdClass();
-        $qv->questionbankentryid = $qbankid;
-        $qv->version = 1;
-        $qv->questionid = $qid;
-        $qv->id = $DB->insert_record('question_versions', $qv);
-        return $qv;
+        $questionversion = new stdClass();
+        $questionversion->questionbankentryid = $qbankid;
+        $questionversion->version = 1;
+        $questionversion->questionid = $qid;
+        $questionversion->id = $DB->insert_record('question_versions', $questionversion);
+        return $questionversion;
     }
 
     /**
      * Insert a short answer question to the database.
+     *
      * @param string $name The name of the short answer question
      */
     private function insert_shortanswer_question_definition(string $name) {
         global $DB;
-        /* debugging("insert_shortanswer_question_definition: ".$name ) ; */
         $question = $this->make_generic_question_definition('shortanswer', $name);
         if (!$question) {
             return;
@@ -301,7 +307,7 @@ class improviser {
         }
         $question->id = $DB->insert_record('question', $question);
         $qbankentry->id = $DB->insert_record('question_bank_entries', $qbankentry);
-        $this->insert_question_version( $qbankentry->id, $question->id );
+        $this->insert_question_version($qbankentry->id, $question->id);
 
         // Add options.
         $options = $this->make_shortanswer_options($question->id);
@@ -311,9 +317,14 @@ class improviser {
         $DB->insert_record('question_answers', $answer);
     }
 
-    private function insert_shortmath_question_definition(string $name) {
+    /**
+     * Add shortmath question for improvisation.
+     *
+     * @param string $name
+     * @return void
+     */
+    private function insert_shortmath_question_definition(string $name): void {
         global $DB;
-        /* debugging("insert_shortmath_question_definition: ".$name ) ; */
         $question = $this->make_generic_question_definition('shortmath', $name);
         if (!$question) {
             return;
@@ -337,7 +348,7 @@ class improviser {
      * Insert all the improvised question definitions to the question bank.
      * Every question will have a prefix of {IMPROV}
      */
-    public function insert_default_improvised_question_definitions() {
+    public function insert_default_improvised_question_definitions(): void {
         $multichoice = get_string('multichoice_options', 'jazzquiz');
         $yes = get_string('yes');
         $no = get_string('no');
@@ -346,7 +357,7 @@ class improviser {
         $this->insert_multichoice_question_definition("5 $multichoice", ['A', 'B', 'C', 'D', 'E']);
         $this->insert_shortanswer_question_definition(get_string('short_answer', 'jazzquiz'));
         // TODO: Remove the check in the future, 2020+. Avoid messing with as many existing instances as possible.
-        if (!$this->get_improvised_question_definition('True / False')) {
+        if ($this->get_improvised_question_definition('True / False') === null) {
             $this->insert_multichoice_question_definition("$yes / $no", [$yes, $no]);
         }
         $this->insert_shortmath_question_definition(get_string('short_math_answer', 'jazzquiz'));

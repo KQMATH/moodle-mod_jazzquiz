@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The main configuration form
+ * The main configuration form.
  *
  * @package   mod_jazzquiz
  * @author    John Hoopes <moodle@madisoncreativeweb.com>
@@ -28,9 +28,17 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 
+/**
+ * Module settings form.
+ */
 class mod_jazzquiz_mod_form extends moodleform_mod {
 
-    public function definition() {
+    /**
+     * Create form definition.
+     *
+     * @return void
+     */
+    public function definition(): void {
         $mform =& $this->_form;
 
         // Adding the "general" field set, where all the common settings are showed.

@@ -16,9 +16,16 @@
 
 namespace mod_jazzquiz;
 
-defined('MOODLE_INTERNAL') || die();
+use context_module;
+use core\context\module;
+use moodle_url;
+use question_display_options;
+use renderer_base;
+use stdClass;
 
 /**
+ * The JazzQuiz activity.
+ *
  * @package   mod_jazzquiz
  * @author    Sebastian S. Gundersen <sebastian@sgundersen.com>
  * @copyright 2014 University of Wisconsin - Madison
@@ -26,52 +33,49 @@ defined('MOODLE_INTERNAL') || die();
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class jazzquiz {
-    /**
-     * @var array $review fields Static review fields to add as options
-     */
-    public static $reviewfields = [
+
+    /** @var array $review fields Static review fields to add as options */
+    public static array $reviewfields = [
         'attempt' => ['theattempt', 'jazzquiz'],
         'correctness' => ['whethercorrect', 'question'],
         'marks' => ['marks', 'jazzquiz'],
         'specificfeedback' => ['specificfeedback', 'question'],
         'generalfeedback' => ['generalfeedback', 'question'],
         'rightanswer' => ['rightanswer', 'question'],
-        'manualcomment' => ['manualcomment', 'jazzquiz']
+        'manualcomment' => ['manualcomment', 'jazzquiz'],
     ];
 
-    /** @var \stdClass $cm course module */
-    public $cm;
+    /** @var stdClass $cm course module */
+    public stdClass $cm;
 
-    /** @var \stdClass $course */
-    public $course;
+    /** @var stdClass $course */
+    public stdClass $course;
 
-    /** @var \context_module $context */
-    public $context;
+    /** @var module $context */
+    public module $context;
 
-    /** @var \plugin_renderer_base|output\renderer $renderer */
-    public $renderer;
+    /** @var renderer_base $renderer */
+    public renderer_base $renderer;
 
-    /** @var \stdClass $data The jazzquiz database table row */
-    public $data;
+    /** @var stdClass $data The jazzquiz database table row */
+    public stdClass $data;
 
-    /** @var bool $isinstructor */
-    protected $isinstructor;
-
-    /** @var jazzquiz_question[] */
-    public $questions;
+    /** @var jazzquiz_question[] $questions */
+    public array $questions;
 
     /**
+     * Constructor.
+     *
      * @param int $cmid The course module ID
-     * @param string $renderersubtype Renderer sub-type to load if requested
      */
-    public function __construct($cmid) {
+    public function __construct(int $cmid) {
         global $PAGE, $DB;
         $this->cm = get_coursemodule_from_id('jazzquiz', $cmid, 0, false, MUST_EXIST);
 
         // TODO: Login requirement must be moved over to caller.
         require_login($this->cm->course, false, $this->cm);
 
-        $this->context = \context_module::instance($cmid);
+        $this->context = context_module::instance($cmid);
         $PAGE->set_context($this->context);
         $this->renderer = $PAGE->get_renderer('mod_jazzquiz');
 
@@ -81,66 +85,68 @@ class jazzquiz {
     }
 
     /**
-     * Sets up the display options for the question
+     * Sets up the display options for the question.
+     *
      * @param bool $review
-     * @param string|\stdClass $reviewoptions
-     * @return \question_display_options
+     * @param string|stdClass $reviewoptions
+     * @return question_display_options
      */
-    public function get_display_options(bool $review, $reviewoptions) {
-        $options = new \question_display_options();
-        $options->flags = \question_display_options::HIDDEN;
+    public function get_display_options(bool $review, string|stdClass $reviewoptions): question_display_options {
+        $options = new question_display_options();
+        $options->flags = question_display_options::HIDDEN;
         $options->context = $this->context;
-        $options->marks = \question_display_options::HIDDEN;
+        $options->marks = question_display_options::HIDDEN;
         if ($review) {
             // Default display options for review.
             $options->readonly = true;
             $options->hide_all_feedback();
             // Special case for "edit" review options value.
             if ($reviewoptions === 'edit') {
-                $options->correctness = \question_display_options::VISIBLE;
-                $options->marks = \question_display_options::MARK_AND_MAX;
-                $options->feedback = \question_display_options::VISIBLE;
-                $options->numpartscorrect = \question_display_options::VISIBLE;
-                $options->manualcomment = \question_display_options::EDITABLE;
-                $options->generalfeedback = \question_display_options::VISIBLE;
-                $options->rightanswer = \question_display_options::VISIBLE;
-                $options->history = \question_display_options::VISIBLE;
-            } else if ($reviewoptions instanceof \stdClass) {
+                $options->correctness = question_display_options::VISIBLE;
+                $options->marks = question_display_options::MARK_AND_MAX;
+                $options->feedback = question_display_options::VISIBLE;
+                $options->numpartscorrect = question_display_options::VISIBLE;
+                $options->manualcomment = question_display_options::EDITABLE;
+                $options->generalfeedback = question_display_options::VISIBLE;
+                $options->rightanswer = question_display_options::VISIBLE;
+                $options->history = question_display_options::VISIBLE;
+            } else if ($reviewoptions instanceof stdClass) {
                 foreach (self::$reviewfields as $field => $unused) {
                     if ($reviewoptions->$field == 1) {
                         if ($field == 'specificfeedback') {
                             $field = 'feedback';
                         }
                         if ($field == 'marks') {
-                            $options->$field = \question_display_options::MARK_AND_MAX;
+                            $options->$field = question_display_options::MARK_AND_MAX;
                         } else {
-                            $options->$field = \question_display_options::VISIBLE;
+                            $options->$field = question_display_options::VISIBLE;
                         }
                     }
                 }
             }
         } else {
             // Default options for running quiz.
-            $options->rightanswer = \question_display_options::HIDDEN;
-            $options->numpartscorrect = \question_display_options::HIDDEN;
-            $options->manualcomment = \question_display_options::HIDDEN;
-            $options->manualcommentlink = \question_display_options::HIDDEN;
+            $options->rightanswer = question_display_options::HIDDEN;
+            $options->numpartscorrect = question_display_options::HIDDEN;
+            $options->manualcomment = question_display_options::HIDDEN;
+            $options->manualcommentlink = question_display_options::HIDDEN;
         }
         return $options;
     }
 
     /**
-     * Get the open session. If none exist, false is returned.
-     * @return jazzquiz_session|false
+     * Get the open session. Returns null if no session is open.
+     *
+     * @return ?jazzquiz_session
      */
-    public function load_open_session() {
+    public function load_open_session(): ?jazzquiz_session {
         global $DB;
         $sessions = $DB->get_records('jazzquiz_sessions', [
             'jazzquizid' => $this->data->id,
-            'sessionopen' => 1
+            'sessionopen' => 1,
         ], 'id');
-        if (count($sessions) === 0) {
-            return false;
+        if (empty($sessions)) {
+            return null;
         }
         $session = reset($sessions);
         return new jazzquiz_session($this, $session->id);
@@ -148,30 +154,31 @@ class jazzquiz {
 
     /**
      * Check if a session is open for this quiz.
+     *
      * @return bool true if open
      */
-    public function is_session_open() {
+    public function is_session_open(): bool {
         global $DB;
-        $sessions = $DB->get_records('jazzquiz_sessions', [
+        return $DB->record_exists('jazzquiz_sessions', [
             'jazzquizid' => $this->data->id,
-            'sessionopen' => 1
+            'sessionopen' => 1,
         ]);
-        return count($sessions);
     }
 
     /**
      * Create a new session for this quiz.
+     *
      * @param string $name
      * @param int $anonymity
-     * @param int $allowguests
-     * @return int|false Session ID returned if successful, else false.
+     * @param bool $allowguests
      */
-    public function create_session(string $name, int $anonymity, int $allowguests) {
+    public function create_session(string $name, int $anonymity, bool $allowguests): void {
         global $DB;
         $this->data->cfganonymity = $anonymity;
-        $this->data->cfgallowguests = $allowguests;
-        $this->save();
-        $session = new \stdClass();
+        $this->data->cfgallowguests = $allowguests ? 1 : 0;
+        $DB->update_record('jazzquiz', $this->data);
+
+        $session = new stdClass();
         $session->name = $name;
         $session->jazzquizid = $this->data->id;
         $session->sessionopen = 1;
@@ -179,22 +186,9 @@ class jazzquiz {
         $session->slot = 0;
         $session->anonymity = $anonymity;
         $session->showfeedback = false;
-        $session->allowguests = $allowguests;
+        $session->allowguests = $allowguests ? 1 : 0;
         $session->created = time();
-        try {
-            return $DB->insert_record('jazzquiz_sessions', $session);
-        } catch (\Exception $e) {
-            return false;
-        }
-    }
-
-    /**
-     * Saves the JazzQuiz instance to the database
-     * @return bool
-     */
-    public function save() {
-        global $DB;
-        return $DB->update_record('jazzquiz', $this->data);
+        $DB->insert_record('jazzquiz_sessions', $session);
     }
 
     /**
@@ -205,9 +199,9 @@ class jazzquiz {
      *
      * @param int $questionid The question bank's question id
      */
-    public function add_question($questionid) {
+    public function add_question(int $questionid): void {
         global $DB;
-        $question = new \stdClass();
+        $question = new stdClass();
         $question->jazzquizid = $this->data->id;
         $question->questionid = $questionid;
         $question->questiontime = $this->data->defaultquestiontime;
@@ -218,12 +212,13 @@ class jazzquiz {
 
     /**
      * Apply a sorted array of jazzquiz_question IDs to the quiz.
+     *
      * Questions that are missing from the array will also be removed from the quiz.
      * Duplicate values will silently be removed.
      *
      * @param int[] $order
      */
-    public function set_question_order(array $order) {
+    public function set_question_order(array $order): void {
         global $DB;
         $order = array_unique($order);
         $questions = $DB->get_records('jazzquiz_questions', ['jazzquizid' => $this->data->id], 'slot');
@@ -240,9 +235,11 @@ class jazzquiz {
     }
 
     /**
+     * Get the question order.
+     *
      * @return int[] of jazzquiz_question id
      */
-    public function get_question_order() : array {
+    public function get_question_order(): array {
         $order = [];
         foreach ($this->questions as $question) {
             $order[] = $question->data->id;
@@ -251,12 +248,13 @@ class jazzquiz {
     }
 
     /**
-     * Edit a JazzQuiz question
+     * Edit a JazzQuiz question.
+     *
      * @param int $questionid the JazzQuiz question id
      */
-    public function edit_question($questionid) {
+    public function edit_question(int $questionid): void {
         global $DB;
-        $url = new \moodle_url('/mod/jazzquiz/edit.php', ['id' => $this->cm->id]);
+        $url = new moodle_url('/mod/jazzquiz/edit.php', ['id' => $this->cm->id]);
         $actionurl = clone($url);
         $actionurl->param('action', 'editquestion');
         $actionurl->param('questionid', $questionid);
@@ -267,7 +265,7 @@ class jazzquiz {
         $mform = new forms\edit\add_question_form($actionurl, [
             'jazzquiz' => $this,
             'questionname' => $question->name,
-            'edit' => true
+            'edit' => true,
         ]);
 
         // Form handling.
@@ -276,7 +274,7 @@ class jazzquiz {
             $url->remove_params('action');
             redirect($url, null, 0);
         } else if ($data = $mform->get_data()) {
-            $question = new \stdClass();
+            $question = new stdClass();
             $question->id = $jazzquizquestion->id;
             $question->jazzquizid = $this->data->id;
             $question->questionid = $jazzquizquestion->questionid;
@@ -293,7 +291,7 @@ class jazzquiz {
             // Display the form.
             $mform->set_data([
                 'questiontime' => $jazzquizquestion->questiontime,
-                'notime' => ($jazzquizquestion->questiontime < 1)
+                'notime' => $jazzquizquestion->questiontime < 1,
             ]);
             $this->renderer->header($this, 'edit');
             echo '<div class="generalbox boxaligncenter jazzquiz-box">';
@@ -306,7 +304,7 @@ class jazzquiz {
     /**
      * Loads the quiz questions from the database, ordered by slot.
      */
-    public function refresh_questions() {
+    public function refresh_questions(): void {
         global $DB;
         $this->questions = [];
         $questions = $DB->get_records('jazzquiz_questions', ['jazzquizid' => $this->data->id], 'slot');
@@ -321,35 +319,36 @@ class jazzquiz {
     }
 
     /**
+     * Get a JazzQuiz question by id.
+     *
      * @param int $jazzquizquestionid
-     * @return jazzquiz_question|bool
+     * @return ?jazzquiz_question
      */
-    public function get_question_by_id($jazzquizquestionid) {
+    public function get_question_by_id(int $jazzquizquestionid): ?jazzquiz_question {
         foreach ($this->questions as $question) {
             if ($question->data->id == $jazzquizquestionid) {
                 return $question;
             }
         }
-        return false;
+        return null;
     }
 
     /**
-     * Quick function for whether or not the current user is the instructor/can control the quiz
+     * Check if the current user is an instructor in this quiz.
+     *
      * @return bool
      */
-    public function is_instructor() : bool {
-        if (is_null($this->isinstructor)) {
-            $this->isinstructor = has_capability('mod/jazzquiz:control', $this->context);
-        }
-        return $this->isinstructor;
+    public function is_instructor(): bool {
+        return has_capability('mod/jazzquiz:control', $this->context);
     }
 
     /**
-     * Get all sessions for this jazzquiz
+     * Get all sessions for this jazzquiz.
+     *
      * @param array $conditions
-     * @return \stdClass[]
+     * @return stdClass[]
      */
-    public function get_sessions(array $conditions = []) : array {
+    public function get_sessions(array $conditions = []): array {
         global $DB;
         $conditions = array_merge(['jazzquizid' => $this->data->id], $conditions);
         return $DB->get_records('jazzquiz_sessions', $conditions);

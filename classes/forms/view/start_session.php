@@ -25,6 +25,8 @@
 
 namespace mod_jazzquiz\forms\view;
 
+use moodleform;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/formslib.php');
@@ -39,23 +41,23 @@ require_once($CFG->libdir . '/formslib.php');
  * @copyright 2019 NTNU
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class start_session extends \moodleform {
+class start_session extends moodleform {
 
     /**
      * Overriding parent function to account for namespace in the class name
-     * so that client validation works
+     * so that client validation works.
      *
-     * @return mixed|string
+     * @return string
      */
-    protected function get_form_identifier() {
+    protected function get_form_identifier(): string {
         $class = get_class($this);
         return preg_replace('/[^a-z0-9_]/i', '_', $class);
     }
 
     /**
-     * Definition of the session start form
+     * Definition of the session start form.
      */
-    public function definition() {
+    public function definition(): void {
         $mform = $this->_form;
         $jazzquiz = $this->_customdata['jazzquiz'];
         $mform->addElement('text', 'session_name', get_string('session_name', 'jazzquiz'));
@@ -64,7 +66,7 @@ class start_session extends \moodleform {
         $anonymity = [
             $mform->createElement('radio', 'anonymity', '', get_string('anonymous_answers', 'jazzquiz'), 1, []),
             $mform->createElement('radio', 'anonymity', '', get_string('fully_anonymous', 'jazzquiz'), 2, []),
-            $mform->createElement('radio', 'anonymity', '', get_string('nonanonymous_session', 'jazzquiz'), 3, [])
+            $mform->createElement('radio', 'anonymity', '', get_string('nonanonymous_session', 'jazzquiz'), 3, []),
         ];
         $mform->addGroup($anonymity, 'anonymity', '', ['<br>', ''], false);
         $mform->setDefault('anonymity', $jazzquiz->data->cfganonymity);
@@ -74,14 +76,13 @@ class start_session extends \moodleform {
     }
 
     /**
-     * Peform validation on the form
+     * Peform validation on the form.
      *
      * @param array $data
      * @param array $files
-     *
-     * @return string[] $errors array of errors
+     * @return string[] errors
      */
-    public function validations($data, $files) {
+    public function validations($data, $files): array {
         $errors = [];
         if (empty($data['session_name'])) {
             $errors['session_name'] = get_string('session_name_required', 'jazzquiz');

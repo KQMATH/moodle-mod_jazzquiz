@@ -14,9 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
+/**
+ * Upgrade script for JazzQuiz.
+ *
+ * @package mod_jazzquiz
+ * @copyright 2024 NTNU
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
-function xmldb_jazzquiz_upgrade($oldversion) {
+/**
+ * The upgrade script for JazzQuiz.
+ *
+ * @package mod_jazzquiz
+ * @param int $oldversion
+ */
+function xmldb_jazzquiz_upgrade(int $oldversion): bool {
     global $DB;
     $dbman = $DB->get_manager();
     if ($oldversion < 2019061911) {

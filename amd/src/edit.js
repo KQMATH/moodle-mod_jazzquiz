@@ -13,9 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
-import Sortable from '../../js/sortable.min.js';
-
 /**
  * @module     mod_jazzquiz
  * @author     Sebastian S. Gundersen <sebastsg@stud.ntnu.no>
@@ -121,10 +118,13 @@ define(['jquery'], function($) {
                 submitQuestionOrder(order, courseModuleId);
             });
             let questionList = document.getElementsByClassName('questionlist')[0];
-            Sortable.create(questionList, {
-                handle: '.dragquestion',
-                onSort: () => submitQuestionOrder(getQuestionOrder(), courseModuleId)
-            });
+            if (typeof Sortable !== 'undefined') {
+                // eslint-disable-next-line no-undef
+                Sortable.create(questionList, {
+                    handle: '.dragquestion',
+                    onSort: () => submitQuestionOrder(getQuestionOrder(), courseModuleId)
+                });
+            }
             listenAddToQuiz(courseModuleId);
         }
     };

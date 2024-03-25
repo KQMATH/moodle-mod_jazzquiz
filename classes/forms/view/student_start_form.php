@@ -20,10 +20,8 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/formslib.php');
 
-
 /**
- * Student start form to display the group to use if they have more than one
- * to start their session attempt
+ * Student start form to display the group to use if they have more than one to start their session attempt.
  *
  * @package     mod_jazzquiz
  * @author      John Hoopes <moodle@madisoncreativeweb.com>
@@ -33,18 +31,17 @@ require_once($CFG->libdir . '/formslib.php');
 class student_start_form extends \moodleform {
 
     /**
-     * Overriding parent function to account for namespace in the class name
-     * so that client validation works
+     * Account for namespace in the class name such that client validation works.
      *
-     * @return mixed|string
+     * @return string
      */
-    protected function get_form_identifier() {
+    protected function get_form_identifier(): string {
         $class = get_class($this);
         return preg_replace('/[^a-z0-9_]/i', '_', $class);
     }
 
     /**
-     * Form definition
+     * Form definition.
      */
     protected function definition() {
         $mform = $this->_form;
@@ -52,12 +49,13 @@ class student_start_form extends \moodleform {
     }
 
     /**
-     * Validate student input
+     * Validate student input.
+     *
      * @param array $data
      * @param array $files
      * @return array $errors
      */
-    public function validation($data, $files) {
+    public function validation($data, $files): array {
         return [];
     }
 }

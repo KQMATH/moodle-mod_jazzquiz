@@ -19,8 +19,11 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/mod/jazzquiz/backup/moodle2/restore_jazzquiz_stepslib.php');
 
 /**
- * JazzQuiz restore task that provides all the settings and steps to perform one
- * complete restore of the activity
+ * JazzQuiz restore task that provides all the settings and steps to perform one complete restore of the activity.
+ *
+ * @package   mod_jazzquiz
+ * @copyright 2024 NTNU
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class restore_jazzquiz_activity_task extends restore_activity_task {
 
@@ -34,40 +37,48 @@ class restore_jazzquiz_activity_task extends restore_activity_task {
     /**
      * Define the structure steps.
      */
-    protected function define_my_steps() {
+    protected function define_my_steps(): void {
         $this->add_step(new restore_jazzquiz_activity_structure_step('jazzquiz_structure', 'jazzquiz.xml'));
     }
 
     /**
+     * Define decode contents.
+     *
      * @return restore_decode_content[]
      */
-    public static function define_decode_contents() {
+    public static function define_decode_contents(): array {
         return [
-            new restore_decode_content('jazzquiz', ['intro'])
+            new restore_decode_content('jazzquiz', ['intro']),
         ];
     }
 
     /**
+     * Define decode rules.
+     *
      * @return restore_decode_rule[]
      */
-    public static function define_decode_rules() {
+    public static function define_decode_rules(): array {
         return [
             new restore_decode_rule('JAZZQUIZVIEWBYID', '/mod/jazzquiz/view.php?id=$1', 'course_module'),
-            new restore_decode_rule('JAZZQUIZINDEX', '/mod/jazzquiz/index.php?id=$1', 'course')
+            new restore_decode_rule('JAZZQUIZINDEX', '/mod/jazzquiz/index.php?id=$1', 'course'),
         ];
     }
 
     /**
+     * Define restore log rules.
+     *
      * @return restore_log_rule[]
      */
-    public static function define_restore_log_rules() {
+    public static function define_restore_log_rules(): array {
         return [];
     }
 
     /**
+     * Define restore log rules for course.
+     *
      * @return restore_log_rule[]
      */
-    public static function define_restore_log_rules_for_course() {
+    public static function define_restore_log_rules_for_course(): array {
         return [];
     }
 

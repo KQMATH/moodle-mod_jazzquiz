@@ -180,8 +180,77 @@ define(['jquery', 'mod_jazzquiz/core'], function($, Jazz) {
             }
         }
 
+        addBarGraphRow(target, name, response, i, highestResponseCount) {
+            // Const percent = (parseInt(responses[i].count) / total) * 100;
+            const percent = (parseInt(response.count) / highestResponseCount) * 100;
+
+            // Check if row with same response already exists.
+            let rowIndex = -1;
+            let currentRowIndex = -1;
+            for (let j = 0; j < target.rows.length; j++) {
+                if (target.rows[j].dataset.response === response.response) {
+                    rowIndex = parseInt(target.rows[j].dataset.rowIndex);
+                    currentRowIndex = j;
+                    break;
+                }
+            }
+
+            if (rowIndex === -1) {
+                rowIndex = target.rows.length;
+                let row = target.insertRow();
+                row.dataset.responseIndex = i;
+                row.dataset.response = response.response;
+                row.dataset.percent = percent;
+                row.dataset.rowIndex = rowIndex;
+                row.dataset.count = response.count;
+                row.classList.add('selected-vote-option');
+                if (percent < 15) {
+                    row.classList.add('outside');
+                }
+
+                const countHtml = '<span id="' + name + '_count_' + rowIndex + '">' + response.count + '</span>';
+                let responseCell = row.insertCell(0);
+                responseCell.onclick = function() {
+                    $(this).parent().toggleClass('selected-vote-option');
+                };
+
+                let barCell = row.insertCell(1);
+                barCell.classList.add('bar');
+                barCell.id = name + '_bar_' + rowIndex;
+                barCell.innerHTML = '<div style="width:' + percent + '%;">' + countHtml + '</div>';
+
+                const latexId = name + '_latex_' + rowIndex;
+                responseCell.innerHTML = '<span id="' + latexId + '"></span>';
+                Quiz.addMathjaxElement($('#' + latexId), response.response);
+                if (response.qtype === 'stack') {
+                    Quiz.renderMaximaEquation(response.response, latexId);
+                }
+            } else {
+                let currentRow = target.rows[currentRowIndex];
+                currentRow.dataset.rowIndex = rowIndex;
+                currentRow.dataset.responseIndex = i;
+                currentRow.dataset.percent = percent;
+                currentRow.dataset.count = response.count;
+                const containsOutside = currentRow.classList.contains('outside');
+                if (percent > 15 && containsOutside) {
+                    currentRow.classList.remove('outside');
+                } else if (percent < 15 && !containsOutside) {
+                    currentRow.classList.add('outside');
+                }
+                let countElement = document.getElementById(name + '_count_' + rowIndex);
+                if (countElement !== null) {
+                    countElement.innerHTML = response.count;
+                }
+                let barElement = document.getElementById(name + '_bar_' + rowIndex);
+                if (barElement !== null) {
+                    barElement.firstElementChild.style.width = percent + '%';
+                }
+            }
+        }
+
         /**
          * Create a new and unsorted response bar graph.
+         *
          * @param {Array.<Object>} responses
          * @param {string} name
          * @param {string} targetId
@@ -193,18 +262,12 @@ define(['jquery', 'mod_jazzquiz/core'], function($, Jazz) {
             if (target === null) {
                 return;
             }
-            let total = 0;
             let highestResponseCount = 0;
             for (let i = 0; i < responses.length; i++) {
                 let count = parseInt(responses[i].count); // In case count is a string.
-                total += count;
                 if (count > highestResponseCount) {
                     highestResponseCount = count;
                 }
-
-            }
-            if (total === 0) {
-                total = 1;
             }
 
             // Remove the rows if it should be rebuilt.
@@ -227,77 +290,11 @@ define(['jquery', 'mod_jazzquiz/core'], function($, Jazz) {
                 }
             }
 
-            this.createControls(name);
-
-            name += graphId;
-
             // Add rows.
+            this.createControls(name);
+            name += graphId;
             for (let i = 0; i < responses.length; i++) {
-                // Const percent = (parseInt(responses[i].count) / total) * 100;
-                const percent = (parseInt(responses[i].count) / highestResponseCount) * 100;
-
-                // Check if row with same response already exists.
-                let rowIndex = -1;
-                let currentRowIndex = -1;
-                for (let j = 0; j < target.rows.length; j++) {
-                    if (target.rows[j].dataset.response === responses[i].response) {
-                        rowIndex = target.rows[j].dataset.row_i;
-                        currentRowIndex = j;
-                        break;
-                    }
-                }
-
-                if (rowIndex === -1) {
-                    rowIndex = target.rows.length;
-                    let row = target.insertRow();
-                    row.dataset.response_i = i;
-                    row.dataset.response = responses[i].response;
-                    row.dataset.percent = percent;
-                    row.dataset.row_i = rowIndex;
-                    row.dataset.count = responses[i].count;
-                    row.classList.add('selected-vote-option');
-                    if (percent < 15) {
-                        row.classList.add('outside');
-                    }
-
-                    const countHtml = '<span id="' + name + '_count_' + rowIndex + '">' + responses[i].count + '</span>';
-                    let responseCell = row.insertCell(0);
-                    responseCell.onclick = function() {
-                        $(this).parent().toggleClass('selected-vote-option');
-                    };
-
-                    let barCell = row.insertCell(1);
-                    barCell.classList.add('bar');
-                    barCell.id = name + '_bar_' + rowIndex;
-                    barCell.innerHTML = '<div style="width:' + percent + '%;">' + countHtml + '</div>';
-
-                    const latexId = name + '_latex_' + rowIndex;
-                    responseCell.innerHTML = '<span id="' + latexId + '"></span>';
-                    Quiz.addMathjaxElement($('#' + latexId), responses[i].response);
-                    if (responses[i].qtype === 'stack') {
-                        Quiz.renderMaximaEquation(responses[i].response, latexId);
-                    }
-                } else {
-                    let currentRow = target.rows[currentRowIndex];
-                    currentRow.dataset.row_i = rowIndex;
-                    currentRow.dataset.response_i = i;
-                    currentRow.dataset.percent = percent;
-                    currentRow.dataset.count = responses[i].count;
-                    const containsOutside = currentRow.classList.contains('outside');
-                    if (percent > 15 && containsOutside) {
-                        currentRow.classList.remove('outside');
-                    } else if (percent < 15 && !containsOutside) {
-                        currentRow.classList.add('outside');
-                    }
-                    let countElement = document.getElementById(name + '_count_' + rowIndex);
-                    if (countElement !== null) {
-                        countElement.innerHTML = responses[i].count;
-                    }
-                    let barElement = document.getElementById(name + '_bar_' + rowIndex);
-                    if (barElement !== null) {
-                        barElement.firstElementChild.style.width = percent + '%';
-                    }
-                }
+                this.addBarGraphRow(target, name, responses[i], i, highestResponseCount);
             }
         }
 
@@ -810,8 +807,7 @@ define(['jquery', 'mod_jazzquiz/core'], function($, Jazz) {
         runVoting() {
             const options = Instructor.getSelectedAnswersForVote();
             const data = {questions: encodeURIComponent(JSON.stringify(options))};
-            // eslint-disable-next-line no-return-assign
-            Ajax.post('run_voting', data, () => {});
+            Ajax.post('run_voting', data);
         }
 
         /**

@@ -26,11 +26,8 @@
 require_once('../../config.php');
 require_once('lib.php');
 
-$id = required_param('id', PARAM_INT); // Course ID.
-$course = $DB->get_record('course', ['id' => $id]);
-if (!$course) {
-    error('Course ID is incorrect');
-}
+$courseid = required_param('id', PARAM_INT);
+$course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 
 $PAGE->set_url(new moodle_url('/mod/jazzquiz/index.php', ['id' => $course->id]));
 require_course_login($course);
@@ -72,9 +69,7 @@ if ($course->format == 'weeks') {
 }
 
 foreach ($jazzquizzes as $jazzquiz) {
-    $url = new moodle_url('/mod/jazzquiz/view.php', [
-        'cmid' => $jazzquiz->coursemodule
-    ]);
+    $url = new moodle_url('/mod/jazzquiz/view.php', ['cmid' => $jazzquiz->coursemodule]);
     if (!$jazzquiz->visible) {
         // Show dimmed if the mod is hidden.
         $link = '<a class="dimmed" href="' . $url . '">' . $jazzquiz->name . '</a>';
@@ -91,4 +86,3 @@ foreach ($jazzquizzes as $jazzquiz) {
 
 echo html_writer::table($table);
 echo $OUTPUT->footer();
-

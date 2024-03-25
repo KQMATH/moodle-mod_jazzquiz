@@ -40,6 +40,7 @@ define(['jquery', 'core/config', 'core/str', 'core/yui', 'core/event'], function
 
         /**
          * Send a request using AJAX, with method specified.
+         *
          * @param {string} method Which HTTP method to use.
          * @param {string} url Relative to root of jazzquiz module. Does not start with /.
          * @param {Object} data Object with parameters as properties. Reserved: id, quizid, sessionid, attemptid, sesskey
@@ -133,7 +134,9 @@ define(['jquery', 'core/config', 'core/str', 'core/yui', 'core/event'], function
                     style.href = cssUrl;
                     head.appendChild(style);
                 });
-                this.quiz.role.onQuestionRefreshed(data);
+                if (this.quiz.role.onQuestionRefreshed !== undefined) {
+                    this.quiz.role.onQuestionRefreshed(data);
+                }
                 Quiz.renderAllMathjax();
             });
         }
@@ -263,7 +266,9 @@ define(['jquery', 'core/config', 'core/str', 'core/yui', 'core/event'], function
         changeQuizState(state, data) {
             this.isNewState = (this.state !== state);
             this.state = state;
-            this.role.onStateChange();
+            if (this.role.onStateChange !== undefined) {
+                this.role.onStateChange();
+            }
             const event = this.events[state];
             this.role[event](data);
         }
@@ -360,7 +365,7 @@ define(['jquery', 'core/config', 'core/str', 'core/yui', 'core/event'], function
      * @param {*} $element
      * @param {string} key Which string in the language file we want.
      * @param {string} [from=jazzquiz] Which language file we want the string from. Default is jazzquiz.
-     * @param {array} args This is {$a} in the string for the key.
+     * @param {array} [args=[]] This is {$a} in the string for the key.
      */
     function setText($element, key, from, args) {
         from = (from !== undefined) ? from : 'jazzquiz';

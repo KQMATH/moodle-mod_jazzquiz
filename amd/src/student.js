@@ -93,20 +93,8 @@ define(['jquery', 'mod_jazzquiz/core'], function($, Jazz) {
             this.quiz.question.isVoteRunning = true;
         }
 
-        onStateChange() {
-
-        }
-
-        onQuestionTimerEnding() {
-
-        }
-
         onTimerTick(timeLeft) {
             setText(Question.timer, 'question_will_end_in_x_seconds', 'jazzquiz', timeLeft);
-        }
-        // eslint-disable-next-line no-unused-vars
-        onQuestionRefreshed(data) {
-
         }
 
         /**
@@ -118,7 +106,6 @@ define(['jquery', 'mod_jazzquiz/core'], function($, Jazz) {
                 return;
             }
             this.quiz.question.isSaving = true;
-            // eslint-disable-next-line no-undef
             if (typeof tinyMCE !== 'undefined') {
                 // eslint-disable-next-line no-undef
                 tinyMCE.triggerSave();

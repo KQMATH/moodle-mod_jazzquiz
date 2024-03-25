@@ -16,9 +16,11 @@
 
 namespace mod_jazzquiz;
 
-defined('MOODLE_INTERNAL') || die();
+use stdClass;
 
 /**
+ * A vote.
+ *
  * @package     mod_jazzquiz
  * @author      Sebastian S. Gundersen <sebastsg@stud.ntnu.no>
  * @copyright   2018 NTNU
@@ -27,39 +29,41 @@ defined('MOODLE_INTERNAL') || die();
 class jazzquiz_vote {
 
     /** @var int $sessionid */
-    protected $sessionid;
+    protected int $sessionid;
 
     /** @var int $slot */
-    protected $slot;
+    protected int $slot;
 
     /**
      * Constructor.
+     *
      * @param int $sessionid
      * @param int $slot
      */
-    public function __construct($sessionid, $slot = 0) {
+    public function __construct(int $sessionid, int $slot = 0) {
         $this->sessionid = $sessionid;
         $this->slot = $slot;
     }
 
     /**
      * Get the results for the vote.
+     *
      * @return array
      */
-    public function get_results() {
+    public function get_results(): array {
         global $DB;
-        $votes = $DB->get_records('jazzquiz_votes', [
+        return $DB->get_records('jazzquiz_votes', [
             'sessionid' => $this->sessionid,
-            'slot' => $this->slot
+            'slot' => $this->slot,
         ]);
-        return $votes;
     }
 
     /**
      * Check whether a user has voted or not.
+     *
      * @return bool
      */
-    public function has_user_voted() {
+    public function has_user_voted(): bool {
         global $DB, $USER;
         $allvotes = $DB->get_records('jazzquiz_votes', ['sessionid' => $this->sessionid]);
         if (!$allvotes) {
@@ -81,10 +85,11 @@ class jazzquiz_vote {
 
     /**
      * Save the vote for a user.
+     *
      * @param int $voteid
      * @return bool
      */
-    public function save_vote($voteid) {
+    public function save_vote(int $voteid): bool {
         global $DB, $USER;
         if ($this->has_user_voted()) {
             return false;
@@ -109,12 +114,13 @@ class jazzquiz_vote {
 
     /**
      * Insert the options for the vote.
+     *
      * @param int $jazzquizid
      * @param string $qtype
      * @param array $options
      * @param int $slot
      */
-    public function prepare_options($jazzquizid, string $qtype, array $options, $slot) {
+    public function prepare_options(int $jazzquizid, string $qtype, array $options, int $slot): void {
         global $DB;
 
         // Delete previous voting options for this session.
@@ -122,7 +128,7 @@ class jazzquiz_vote {
 
         // Add to database.
         foreach ($options as $option) {
-            $vote = new \stdClass();
+            $vote = new stdClass();
             $vote->jazzquizid = $jazzquizid;
             $vote->sessionid = $this->sessionid;
             $vote->attempt = $option['text'];

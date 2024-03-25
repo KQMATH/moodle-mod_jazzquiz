@@ -1,25 +1,57 @@
 {{!
-    @template quiz
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_jazzquiz/quiz
+
+    Main wrapper for a JazzQuiz session.
+
+    Example context (json):
+    {
+        "instructor": true,
+        "buttons": [
+            {
+                "id": "improvise",
+                "icon": "edit",
+                "text": "Improvise"
+            }
+        ]
+    }
 }}
 <div id="jazzquiz">
-    {{# instructor }}
+    {{#instructor}}
     <div id="jazzquiz_controls_box" class="jazzquiz-box">
         <div id="jazzquiz_controls">
             <div class="quiz-list-buttons quiz-control-buttons hidden">
-                {{# buttons }}<button id="jazzquiz_control_{{ id }}" class="btn">
-                    <i class="fa fa-{{ icon }}"></i> {{ text }}
-                </button>{{/ buttons }}
+                {{#buttons}}
+                <button id="jazzquiz_control_{{id}}" class="btn">
+                    <i class="fa fa-{{icon}}"></i> {{text}}
+                </button>
+                {{/buttons}}
                 <div style="clear:both;"></div>
             </div>
             <div id="jazzquiz_improvise_menu" class="start-question-menu"></div>
             <div id="jazzquiz_jump_menu" class="start-question-menu"></div>
             <div class="quiz-list-buttons">
                 <button id="jazzquiz_control_startquiz" class="btn">
-                    <i class="fa fa-start"></i> {{# str }} startquiz, jazzquiz {{/ str }}
+                    <i class="fa fa-start"></i> {{#str}}startquiz, jazzquiz{{/str}}
                 </button>
                 <h4 class="inline"></h4>
                 <button id="jazzquiz_control_exit" class="btn">
-                    <i class="fa fa-close"></i> {{# str }} exit, jazzquiz {{/ str }}
+                    <i class="fa fa-close"></i> {{#str}}exit, jazzquiz{{/str}}
                 </button>
             </div>
             <div id="jazzquiz_control_separator"></div>
@@ -37,18 +69,18 @@
         <div id="jazzquiz_question_timer" class="jazzquiz-box hidden"></div>
         <div id="jazzquiz_response_info_container" class="jazzquiz-box hidden"></div>
     </div>
-    {{/ instructor }}
-    {{^ instructor }}
+    {{/instructor}}
+    {{^instructor}}
     <div id="jazzquiz_question_timer" class="jazzquiz-box hidden"></div>
-    {{/ instructor }}
+    {{/instructor}}
     <div id="jazzquiz_info_container" class="jazzquiz-box hidden"></div>
     <div id="jazzquiz_question_box"></div>
-    {{# instructor }}
+    {{#instructor}}
     <div>
         <button id="jazzquiz_undo_merge" class="btn btn-primary hidden">
             <i class="fa fa-undo"></i>
         </button>
     </div>
     <div id="jazzquiz_responses_container" class="jazzquiz-response-container jazzquiz-box hidden"></div>
-    {{/ instructor }}
+    {{/instructor}}
 </div>

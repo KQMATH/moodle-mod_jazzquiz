@@ -14,16 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * Restore Jazzquiz from backup.
+ *
+ * @package   mod_jazzquiz
+ * @copyright 2024 NTNU
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class restore_jazzquiz_activity_structure_step extends restore_questions_activity_structure_step {
 
-    /**
-     * @var \stdClass for inform_new_usage_id
-     */
-    private $currentattempt;
+    /** @var stdClass Attempt record for inform_new_usage_id */
+    private stdClass $currentattempt;
 
-    protected function define_structure() {
+    /**
+     * Define the structure of the restore element.
+     *
+     * @return restore_path_element[]
+     */
+    protected function define_structure(): array {
         $userinfo = $this->get_setting_value('userinfo');
         $paths = [];
         $paths[] = new restore_path_element('jazzquiz', '/activity/jazzquiz');
@@ -48,7 +56,13 @@ class restore_jazzquiz_activity_structure_step extends restore_questions_activit
         return $this->prepare_activity_structure($paths);
     }
 
-    protected function process_jazzquiz($data) {
+    /**
+     * Process activity record.
+     *
+     * @param stdClass|array $data
+     * @return void
+     */
+    protected function process_jazzquiz(stdClass|array $data): void {
         global $DB;
         $data = (object)$data;
         $data->course = $this->get_courseid();
@@ -58,7 +72,13 @@ class restore_jazzquiz_activity_structure_step extends restore_questions_activit
         $this->apply_activity_instance($newitemid);
     }
 
-    protected function process_jazzquiz_question($data) {
+    /**
+     * Process question record.
+     *
+     * @param stdClass|array $data
+     * @return void
+     */
+    protected function process_jazzquiz_question(stdClass|array $data): void {
         global $DB;
         $data = (object)$data;
         $oldid = $data->id;
@@ -71,7 +91,13 @@ class restore_jazzquiz_activity_structure_step extends restore_questions_activit
         $this->set_mapping('jazzquiz_question', $oldid, $newitemid);
     }
 
-    protected function process_jazzquiz_session($data) {
+    /**
+     * Process session record.
+     *
+     * @param stdClass|array $data
+     * @return void
+     */
+    protected function process_jazzquiz_session(stdClass|array $data): void {
         global $DB;
         $data = (object)$data;
         $oldid = $data->id;
@@ -81,7 +107,13 @@ class restore_jazzquiz_activity_structure_step extends restore_questions_activit
         $this->set_mapping('jazzquiz_session', $oldid, $newitemid);
     }
 
-    protected function process_jazzquiz_attempt($data) {
+    /**
+     * Process attempt record.
+     *
+     * @param stdClass|array $data
+     * @return void
+     */
+    protected function process_jazzquiz_attempt(stdClass|array $data): void {
         $data = (object)$data;
         $data->sessionid = $this->get_new_parentid('jazzquiz_session');
         $data->userid = $this->get_mappingid('user', $data->userid);
@@ -91,7 +123,13 @@ class restore_jazzquiz_activity_structure_step extends restore_questions_activit
         $this->currentattempt = clone($data);
     }
 
-    protected function inform_new_usage_id($newusageid) {
+    /**
+     * Process question usage for attempt record currently being processed.
+     *
+     * @param int $newusageid
+     * @return void
+     */
+    protected function inform_new_usage_id($newusageid): void {
         global $DB;
         $data = $this->currentattempt;
         $oldid = $data->id;
@@ -100,7 +138,13 @@ class restore_jazzquiz_activity_structure_step extends restore_questions_activit
         $this->set_mapping('jazzquiz_attempt', $oldid, $newitemid);
     }
 
-    protected function process_jazzquiz_session_question($data) {
+    /**
+     * Process session question record.
+     *
+     * @param stdClass|array $data
+     * @return void
+     */
+    protected function process_jazzquiz_session_question(stdClass|array $data): void {
         global $DB;
         $data = (object)$data;
         $data->sessionid = $this->get_new_parentid('jazzquiz_session');
@@ -113,7 +157,13 @@ class restore_jazzquiz_activity_structure_step extends restore_questions_activit
         $this->set_mapping('jazzquiz_session_question', $oldid, $newitemid);
     }
 
-    protected function process_jazzquiz_merge($data) {
+    /**
+     * Process merge record.
+     *
+     * @param stdClass|array $data
+     * @return void
+     */
+    protected function process_jazzquiz_merge(stdClass|array $data): void {
         global $DB;
         $data = (object)$data;
         $oldid = $data->id;
@@ -122,7 +172,13 @@ class restore_jazzquiz_activity_structure_step extends restore_questions_activit
         $this->set_mapping('jazzquiz_merge', $oldid, $newitemid);
     }
 
-    protected function process_jazzquiz_vote($data) {
+    /**
+     * Process vote record.
+     *
+     * @param stdClass|array $data
+     * @return void
+     */
+    protected function process_jazzquiz_vote(stdClass|array $data): void {
         global $DB;
         $data = (object)$data;
         $oldid = $data->id;
@@ -132,7 +188,13 @@ class restore_jazzquiz_activity_structure_step extends restore_questions_activit
         $this->set_mapping('jazzquiz_vote', $oldid, $newitemid);
     }
 
-    protected function process_jazzquiz_attendance($data) {
+    /**
+     * Process attendance record.
+     *
+     * @param stdClass|array $data
+     * @return void
+     */
+    protected function process_jazzquiz_attendance(stdClass|array $data): void {
         global $DB;
         $data = (object)$data;
         $oldid = $data->id;
@@ -142,7 +204,12 @@ class restore_jazzquiz_activity_structure_step extends restore_questions_activit
         $this->set_mapping('jazzquiz_attendance', $oldid, $newitemid);
     }
 
-    protected function after_execute() {
+    /**
+     * After execute.
+     *
+     * @return void
+     */
+    protected function after_execute(): void {
         $this->add_related_files('mod_jazzquiz', 'intro', null);
     }
 

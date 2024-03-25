@@ -15,9 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The reports page
- *
- * This handles displaying results
+ * The reports page.
  *
  * @package   mod_jazzquiz
  * @author    Sebastian S. Gundersen <sebastsg@stud.ntnu.no>
@@ -27,6 +25,8 @@
  */
 
 namespace mod_jazzquiz;
+
+use moodle_url;
 
 require_once("../../config.php");
 require_once($CFG->libdir . '/questionlib.php');
@@ -38,20 +38,17 @@ require_once($CFG->libdir . '/tablelib.php');
 require_login();
 
 /**
+ * View session report.
+ *
  * @param jazzquiz $jazzquiz
- * @param \moodle_url $url
+ * @param moodle_url $url
  * @param int $sessionid
- * @throws \coding_exception
- * @throws \dml_exception
- * @throws \moodle_exception
  */
-function jazzquiz_view_session_report(jazzquiz $jazzquiz, \moodle_url $url, int $sessionid) {
+function jazzquiz_view_session_report(jazzquiz $jazzquiz, moodle_url $url, int $sessionid): void {
+    global $DB;
     if ($sessionid === 0) {
         // If no session id is specified, we try to load the first one.
-        global $DB;
-        $sessions = $DB->get_records('jazzquiz_sessions', [
-            'jazzquizid' => $jazzquiz->data->id
-        ]);
+        $sessions = $DB->get_records('jazzquiz_sessions', ['jazzquizid' => $jazzquiz->data->id]);
         if (count($sessions) === 0) {
             echo get_string('no_sessions_exist', 'jazzquiz');
             return;
@@ -66,10 +63,11 @@ function jazzquiz_view_session_report(jazzquiz $jazzquiz, \moodle_url $url, int 
 }
 
 /**
+ * Export session report.
+ *
  * @param jazzquiz $jazzquiz
- * @throws \coding_exception
  */
-function jazzquiz_export_session_report(jazzquiz $jazzquiz) {
+function jazzquiz_export_session_report(jazzquiz $jazzquiz): void {
     $what = required_param('what', PARAM_ALPHANUM);
     $sessionid = required_param('sessionid', PARAM_INT);
     $session = new jazzquiz_session($jazzquiz, $sessionid);
@@ -96,7 +94,13 @@ function jazzquiz_export_session_report(jazzquiz $jazzquiz) {
     }
 }
 
-function jazzquiz_delete_session_report(int $sessionid) {
+/**
+ * Delete a session report.
+ *
+ * @param int $sessionid
+ * @return void
+ */
+function jazzquiz_delete_session_report(int $sessionid): void {
     if ($sessionid !== 0) {
         jazzquiz_session::delete($sessionid);
     }
@@ -105,20 +109,17 @@ function jazzquiz_delete_session_report(int $sessionid) {
 /**
  * Entry point for viewing reports.
  */
-function jazzquiz_reports() {
+function jazzquiz_reports(): void {
     global $PAGE;
     $cmid = optional_param('id', false, PARAM_INT);
     if (!$cmid) {
-        // Probably a login redirect that doesn't include any ID.
-        // Go back to the main Moodle page, because we have no info.
-        header('Location: /');
-        exit;
+        redirect(new moodle_url('/'));
     }
     $jazzquiz = new jazzquiz($cmid);
     require_capability('mod/jazzquiz:seeresponses', $jazzquiz->context);
     $action = optional_param('action', '', PARAM_ALPHANUM);
 
-    $url = new \moodle_url('/mod/jazzquiz/reports.php');
+    $url = new moodle_url('/mod/jazzquiz/reports.php');
     $url->param('id', $cmid);
     $url->param('quizid', $jazzquiz->data->id);
     $url->param('action', $action);
@@ -136,7 +137,7 @@ function jazzquiz_reports() {
     if (!$isdownload) {
         $jazzquiz->renderer->header($jazzquiz, 'reports');
     }
-        $sessionid = optional_param('sessionid', 0, PARAM_INT);
+    $sessionid = optional_param('sessionid', 0, PARAM_INT);
     switch ($action) {
         case 'view':
             jazzquiz_view_session_report($jazzquiz, $url, $sessionid);

@@ -166,7 +166,6 @@ $string['a_students_answered'] = '<b>{$a}</b> students answered at least one que
 $string['no_attempts_found'] = 'No attempts found.';
 $string['student'] = 'Student';
 
-// Problem: $string['student_id'] = 'StudentID'; //not working in report.mustache, not sure why
 $string['select_session'] = 'Select session to review:';
 $string['attendance_list'] = 'Attendance list';
 $string['download_report'] = 'Download report';
@@ -177,8 +176,7 @@ $string['delete_report'] = 'Delete report';
 
 // Instructions.
 $string['instructions_for_student'] = '<p>Please wait for the instructor to start the quiz.</p>';
-$string['instructions_for_instructor'] = '
-    <h3>Please make sure to read the instructions:</h3>
+$string['instructions_for_instructor'] = '<h3>Please make sure to read the instructions:</h3>
     <p>There are hotkeys available, which can be used when an input field is not focused.</p>
     <table>
         <tr>

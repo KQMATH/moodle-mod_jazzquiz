@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Library of functions and constants for module jazzquiz
+ * Library of functions and constants for module jazzquiz.
  *
  * @package   mod_jazzquiz
  * @author    John Hoopes <moodle@madisoncreativeweb.com>
@@ -23,19 +23,15 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+use mod_jazzquiz\jazzquiz_session;
 
 /**
- * Given an object containing all the necessary data,
- * (defined by the form in mod.html) this function
- * will create a new instance and return the id number
- * of the new instance.
+ * Create a new JazzQuiz instance.
  *
- * @param \stdClass $jazzquiz An object from the form in mod.html
+ * @param stdClass $jazzquiz An object from the form in mod.html
  * @return int The id of the newly inserted jazzquiz record
- * @throws dml_exception
  */
-function jazzquiz_add_instance(\stdClass $jazzquiz) {
+function jazzquiz_add_instance(stdClass $jazzquiz): int {
     global $DB;
     $jazzquiz->timemodified = time();
     $jazzquiz->timecreated = time();
@@ -44,15 +40,12 @@ function jazzquiz_add_instance(\stdClass $jazzquiz) {
 }
 
 /**
- * Given an object containing all the necessary data,
- * (defined by the form in mod.html) this function
- * will update an existing instance with new data.
+ * Update JazzQuiz instance with new data.
  *
- * @param \stdClass $jazzquiz An object from the form in mod.html
- * @return boolean Success/Fail
- * @throws dml_exception
+ * @param stdClass $jazzquiz An object from the form in mod.html
+ * @return bool Success/Fail
  */
-function jazzquiz_update_instance(\stdClass $jazzquiz) {
+function jazzquiz_update_instance(stdClass $jazzquiz): bool {
     global $DB;
     $jazzquiz->timemodified = time();
     $jazzquiz->id = $jazzquiz->instance;
@@ -61,45 +54,35 @@ function jazzquiz_update_instance(\stdClass $jazzquiz) {
 }
 
 /**
- * Given an ID of an instance of this module,
- * this function will permanently delete the instance and any data that depends on it.
+ * Permanently delete a JazzQuiz instance and any data that depends on it.
  *
- * @param int $id Id of the module instance
- * @return boolean Success/Failure
+ * @param int $id Module instance ID
+ * @return bool Success/Failure
  **/
-function jazzquiz_delete_instance($id) {
+function jazzquiz_delete_instance(int $id): bool {
     global $DB, $CFG;
 
     require_once($CFG->dirroot . '/mod/jazzquiz/locallib.php');
     require_once($CFG->libdir . '/questionlib.php');
     require_once($CFG->dirroot . '/question/editlib.php');
 
-    try {
-        $jazzquiz = $DB->get_record('jazzquiz', ['id' => $id], '*', MUST_EXIST);
-        // Go through each session and then delete them (also deletes all attempts for them).
-        $sessions = $DB->get_records('jazzquiz_sessions', ['jazzquizid' => $jazzquiz->id]);
-        foreach ($sessions as $session) {
-            \mod_jazzquiz\jazzquiz_session::delete($session->id);
-        }
-        // Delete all questions for this quiz.
-        $DB->delete_records('jazzquiz_questions', ['jazzquizid' => $jazzquiz->id]);
-        // Finally delete the jazzquiz object.
-        $DB->delete_records('jazzquiz', ['id' => $jazzquiz->id]);
-    } catch (Exception $e) {
-        return false;
+    $jazzquiz = $DB->get_record('jazzquiz', ['id' => $id], '*', MUST_EXIST);
+    // Go through each session and then delete them (also deletes all attempts for them).
+    $sessions = $DB->get_records('jazzquiz_sessions', ['jazzquizid' => $jazzquiz->id]);
+    foreach ($sessions as $session) {
+        jazzquiz_session::delete($session->id);
     }
+    $DB->delete_records('jazzquiz_questions', ['jazzquizid' => $jazzquiz->id]);
+    $DB->delete_records('jazzquiz', ['id' => $jazzquiz->id]);
     return true;
 }
 
 /**
- * Function to be run periodically according to the moodle cron
- * This function searches for things that need to be done, such
- * as sending out mail, toggling flags etc ...
+ * Function to be run periodically according to the moodle cron.
  *
- * @uses $CFG
- * @return boolean
- **/
-function jazzquiz_cron() {
+ * @return bool
+ */
+function jazzquiz_cron(): bool {
     return true;
 }
 
@@ -110,10 +93,9 @@ function jazzquiz_cron() {
  * @param navigation_node $jazzquiznode
  * @return void
  */
-function jazzquiz_extend_settings_navigation($settings, $jazzquiznode) {
+function jazzquiz_extend_settings_navigation(settings_navigation $settings, navigation_node $jazzquiznode): void {
     global $PAGE, $CFG;
 
-    // Require {@link questionlib.php}
     // Included here as we only ever want to include this file if we really need to.
     require_once($CFG->libdir . '/questionlib.php');
 
@@ -121,18 +103,18 @@ function jazzquiz_extend_settings_navigation($settings, $jazzquiznode) {
 }
 
 /**
- * @param \stdClass|int $course
- * @param \stdClass $cm
- * @param \context $context
+ * Plugin file callback for JazzQuiz.
+ *
+ * @param stdClass|int $course
+ * @param stdClass $cm
+ * @param context $context
  * @param string $filearea
  * @param array $args
  * @param mixed $forcedownload
  * @param array $options
  * @return bool
- * @throws coding_exception
- * @throws dml_exception
  */
-function jazzquiz_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, $options = []) {
+function jazzquiz_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, $options = []): bool {
     global $DB;
     if ($context->contextlevel != CONTEXT_MODULE) {
         return false;
@@ -149,7 +131,7 @@ function jazzquiz_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
     }
     $question = $DB->get_record('jazzquiz_question', [
         'id' => $questionid,
-        'quizid' => $cm->instance
+        'quizid' => $cm->instance,
     ]);
     if (!$question) {
         return false;
@@ -157,7 +139,8 @@ function jazzquiz_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
     $fs = get_file_storage();
     $relative = implode('/', $args);
     $fullpath = "/$context->id/mod_jazzquiz/$filearea/$questionid/$relative";
-    if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
+    $file = $fs->get_file_by_hash(sha1($fullpath));
+    if (!$file || $file->is_directory()) {
         return false;
     }
     send_stored_file($file);
@@ -165,11 +148,10 @@ function jazzquiz_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
 }
 
 /**
- * Called via pluginfile.php -> question_pluginfile to serve files belonging to
- * a question in a question_attempt when that attempt is a quiz attempt.
+ * Serve files belonging to a question in a question_attempt when that attempt is a quiz attempt.
  *
- * @package mod_jazzquiz
- * @category files
+ * Called via pluginfile.php -> question_pluginfile.
+ *
  * @param stdClass $course course settings object
  * @param stdClass $context context object
  * @param string $component the name of the component we are serving files for.
@@ -179,13 +161,16 @@ function jazzquiz_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
  * @param array $args the remaining bits of the file path.
  * @param bool $forcedownload whether the user must be forced to download the file.
  * @param array $options additional options affecting the file serving
+ * @package mod_jazzquiz
+ * @category files
  */
 function mod_jazzquiz_question_pluginfile($course, $context, $component, $filearea, $qubaid, $slot,
-                                          $args, $forcedownload, $options = []) {
+                                          $args, $forcedownload, $options = []): void {
     $fs = get_file_storage();
     $relative = implode('/', $args);
     $full = "/$context->id/$component/$filearea/$relative";
-    if (!$file = $fs->get_file_by_hash(sha1($full)) or $file->is_directory()) {
+    $file = $fs->get_file_by_hash(sha1($full));
+    if (!$file || $file->is_directory()) {
         send_file_not_found();
     }
     send_stored_file($file, 0, 0, $forcedownload, $options);
@@ -193,17 +178,16 @@ function mod_jazzquiz_question_pluginfile($course, $context, $component, $filear
 
 /**
  * Check whether JazzQuiz supports a certain feature or not.
+ *
  * @param string $feature
  * @return bool
  */
-function jazzquiz_supports(string $feature) : bool {
-    switch ($feature) {
-        case FEATURE_MOD_INTRO:
-        case FEATURE_BACKUP_MOODLE2:
-        case FEATURE_SHOW_DESCRIPTION:
-        case FEATURE_USES_QUESTIONS:
-            return true;
-        default:
-            return false;
-    }
+function jazzquiz_supports(string $feature): bool {
+    return match ($feature) {
+        FEATURE_MOD_INTRO,
+        FEATURE_BACKUP_MOODLE2,
+        FEATURE_SHOW_DESCRIPTION,
+        FEATURE_USES_QUESTIONS => true,
+        default => false,
+    };
 }

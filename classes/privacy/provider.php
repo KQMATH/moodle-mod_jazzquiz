@@ -26,14 +26,15 @@
 
 namespace mod_jazzquiz\privacy;
 
+use context;
+use context_module;
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\contextlist;
 use core_privacy\local\request\helper;
 use core_privacy\local\request\transform;
 use core_privacy\local\request\writer;
-
-defined('MOODLE_INTERNAL') || die();
+use stdClass;
 
 /**
  * Privacy Subsystem implementation for mod_jazzquiz.
@@ -51,11 +52,12 @@ class provider implements
     \core_privacy\local\request\plugin\provider {
 
     /**
-     * Returns meta data about this system.
-     * @param   collection $items The initialised collection to add metadata to.
-     * @return  collection  A listing of user data stored through this system.
+     * Returns metadata about this system.
+     *
+     * @param collection $items The initialised collection to add metadata to.
+     * @return collection A listing of user data stored through this system.
      */
-    public static function get_metadata(collection $items) : collection {
+    public static function get_metadata(collection $items): collection {
         // The table 'jazzquiz' stores a record for each JazzQuiz.
         // It does not contain user personal data, but data is returned from it for contextual requirements.
 
@@ -66,7 +68,7 @@ class provider implements
             'responded' => 'privacy:metadata:jazzquiz_attempts:responded',
             'timestart' => 'privacy:metadata:jazzquiz_attempts:timestart',
             'timefinish' => 'privacy:metadata:jazzquiz_attempts:timefinish',
-            'timemodified' => 'privacy:metadata:jazzquiz_attempts:timemodified'
+            'timemodified' => 'privacy:metadata:jazzquiz_attempts:timemodified',
         ], 'privacy:metadata:jazzquiz_attempts');
 
         // The 'jazzquiz_merges' table is used to merge one question attempt into another in a JazzQuiz session.
@@ -92,10 +94,10 @@ class provider implements
     /**
      * Get the list of contexts where the specified user has attempted a JazzQuiz.
      *
-     * @param   int $userid The user to search.
-     * @return  contextlist  $contextlist The contextlist containing the list of contexts used in this plugin.
+     * @param int $userid The user to search.
+     * @return contextlist  $contextlist The contextlist containing the list of contexts used in this plugin.
      */
-    public static function get_contexts_for_userid(int $userid) : contextlist {
+    public static function get_contexts_for_userid(int $userid): contextlist {
         $sql = 'SELECT cx.id
                   FROM {context} cx
                   JOIN {course_modules} cm
@@ -115,24 +117,18 @@ class provider implements
         $contextlist->add_from_sql($sql, [
             'contextlevel' => CONTEXT_MODULE,
             'modname' => 'jazzquiz',
-            'userid' => $userid
+            'userid' => $userid,
         ]);
         return $contextlist;
     }
 
     /**
-     * Export all user data for the specified user, in the specified contexts.
+     * Export all user data for the specified user in the specified contexts.
      *
-     * @param   approved_contextlist $contextlist The approved contexts to export information for.
-     * @throws \coding_exception
-     * @throws \dml_exception
-     * @throws \moodle_exception
+     * @param approved_contextlist $contextlist The approved contexts to export information for.
      */
-    public static function export_user_data(approved_contextlist $contextlist) {
+    public static function export_user_data(approved_contextlist $contextlist): void {
         global $DB;
-        if (empty($contextlist)) {
-            return;
-        }
         $user = $contextlist->get_user();
         list($contextsql, $contextparams) = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
         $sql = "SELECT cm.id AS cmid
@@ -161,7 +157,7 @@ class provider implements
         // Fetch the individual quizzes.
         $quizzes = $DB->get_recordset_sql($sql, $params);
         foreach ($quizzes as $quiz) {
-            $context = \context_module::instance($quiz->cmid);
+            $context = context_module::instance($quiz->cmid);
             $data = helper::get_context_data($context, $user);
             helper::export_context_files($context, $user);
             writer::with_context($context)->export_data([], $data);
@@ -170,7 +166,13 @@ class provider implements
         static::export_quiz_attempts($contextlist);
     }
 
-    protected static function export_quiz_attempts(approved_contextlist $contextlist) {
+    /**
+     * Export all quiz attempts for the specified user in the specified contexts.
+     *
+     * @param approved_contextlist $contextlist
+     * @return void
+     */
+    protected static function export_quiz_attempts(approved_contextlist $contextlist): void {
         global $DB;
         $userid = $contextlist->get_user()->id;
         $sql = "SELECT cx.id              AS contextid,
@@ -198,12 +200,12 @@ class provider implements
         $params = [
             'contextlevel' => CONTEXT_MODULE,
             'userid' => $userid,
-            'modname' => 'jazzquiz'
+            'modname' => 'jazzquiz',
         ];
         $attempts = $DB->get_recordset_sql($sql, $params);
         foreach ($attempts as $attempt) {
             $options = new \question_display_options();
-            $options->context = \context_module::instance($attempt->cmid);
+            $options->context = context_module::instance($attempt->cmid);
             $attemptsubcontext = [$attempt->sessionname . ' ' . $attempt->sessionid . ' ' . $attempt->id];
             // This attempt was made by the user. They 'own' all data on it. Store the question usage data.
             \core_question\privacy\provider::export_question_usage(
@@ -212,10 +214,10 @@ class provider implements
                 $attemptsubcontext,
                 $attempt->qubaid,
                 $options,
-                true
+                true,
             );
             // Store the quiz attempt data.
-            $data = new \stdClass();
+            $data = new stdClass();
             $data->responded = $attempt->responded;
             $data->timestart = transform::datetime($attempt->timestart);
             $data->timefinish = transform::datetime($attempt->timefinish);
@@ -228,9 +230,9 @@ class provider implements
     /**
      * Delete all data for all users in the specified context.
      *
-     * @param   \context $context The specific context to delete data for.
+     * @param context $context The specific context to delete data for.
      */
-    public static function delete_data_for_all_users_in_context(\context $context) {
+    public static function delete_data_for_all_users_in_context(context $context): void {
         global $DB;
         if ($context->contextlevel != CONTEXT_MODULE) {
             return;
@@ -249,9 +251,9 @@ class provider implements
     /**
      * Delete all user data for the specified user, in the specified contexts.
      *
-     * @param   approved_contextlist $contextlist The approved contexts and user information to delete information for.
+     * @param approved_contextlist $contextlist Approved contexts and user information to delete information for.
      */
-    public static function delete_data_for_user(approved_contextlist $contextlist) {
+    public static function delete_data_for_user(approved_contextlist $contextlist): void {
         global $DB;
         if (empty($contextlist->count())) {
             return;
