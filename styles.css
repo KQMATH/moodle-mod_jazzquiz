@@ -440,3 +440,7 @@
     text-align: left;
     margin: 0;
 }
+
+.jazzquiz-box form#questionsubmit {
+    overflow-x: auto;
+}
