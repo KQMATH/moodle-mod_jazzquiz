@@ -83,10 +83,10 @@ class improviser {
                        AND ctx.path LIKE :path
                      WHERE q.name LIKE :prefix
                   ORDER BY q.name";
-            $questions[] = $DB->get_records_sql($sql, [
+            $questions = array_merge($questions, $DB->get_records_sql($sql, [
                 'prefix' => '{IMPROV}%',
                 'path' => "%/$part",
-            ]);
+            ]));
         }
         return $questions;
     }
