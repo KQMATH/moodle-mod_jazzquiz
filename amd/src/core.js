@@ -22,7 +22,7 @@
  */
 
 import $ from 'jquery';
-import {get_string} from 'core/str';
+import {getString} from 'core/str';
 import {notifyFilterContentUpdated} from 'core_filters/events';
 import selectors from 'mod_jazzquiz/selectors';
 import {Question} from 'mod_jazzquiz/question';
@@ -215,7 +215,7 @@ export class Quiz {
 export function setText($element, key, from, args) {
     from = (from !== undefined) ? from : 'jazzquiz';
     args = (args !== undefined) ? args : [];
-    $.when(get_string(key, from, args)).done(text => Quiz.show($element.html(text)));
+    $.when(getString(key, from, args)).done(text => Quiz.show($element.html(text)));
 }
 
 /**
