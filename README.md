@@ -30,7 +30,7 @@ Documentation is available as
 
 **Project lead:** Hans Georg Schaathun: <hasc@ntnu.no>
 
-**Developer:** Sebastian S. Gundersen: <sebastsg@stud.ntnu.no>
+**Developer:** Sebastian Gundersen: <sebastian@sgundersen.com>
 
 ## See also
 
