@@ -55,10 +55,10 @@ function jazzquiz_view_session_report(jazzquiz $jazzquiz, moodle_url $url, int $
         }
         $sessionid = current($sessions)->id;
     }
-    $session = new jazzquiz_session($jazzquiz, $sessionid);
+    $session = new jazzquiz_session(null, $sessionid);
     $session->load_attempts();
     $url->param('sessionid', $sessionid);
-    $context = $jazzquiz->renderer->view_session_report($session, $url);
+    $context = $jazzquiz->renderer->view_session_report($session, $jazzquiz, $url);
     echo $jazzquiz->renderer->render_from_template('jazzquiz/report', $context);
 }
 

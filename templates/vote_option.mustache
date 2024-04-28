@@ -1,0 +1,33 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_jazzquiz/vote_option
+
+    Option element in a vote.
+
+    Example context (json):
+    {
+        "index": 0,
+        "voteid": 4,
+        "qtype": "shortanswer",
+        "text": "Example attempt"
+    }
+}}
+<label class="jazzquiz-select-vote-label" data-qtype="{{qtype}}">
+    <input class="jazzquiz-select-vote-input" type="radio" name="vote" value="{{voteid}}">
+    <span class="jazzquiz-select-vote-attempt" id="vote_answer_label_{{index}}">{{{text}}}</span>
+</label>

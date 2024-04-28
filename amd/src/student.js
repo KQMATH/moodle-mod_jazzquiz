@@ -21,13 +21,9 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import $ from 'jquery';
-import Jazz from 'mod_jazzquiz/core';
-
-const Quiz = Jazz.Quiz;
-const Question = Jazz.Question;
-const Ajax = Jazz.Ajax;
-const setText = Jazz.setText;
+import {Quiz, setText} from 'mod_jazzquiz/core';
+import selectors from 'mod_jazzquiz/selectors';
+import {addMathjaxElement, renderMaximaEquation} from 'mod_jazzquiz/math_rendering';
 
 class Student {
 
@@ -37,23 +33,33 @@ class Student {
     constructor(quiz) {
         this.quiz = quiz;
         this.voteAnswer = undefined;
-        let self = this;
-        $(document).on('submit', '#jazzquiz_question_form', function(event) {
-            event.preventDefault();
-            self.submitAnswer();
-        }).on('click', '#jazzquiz_save_vote', function() {
-            self.saveVote();
-        }).on('click', '.jazzquiz-select-vote', function() {
-            self.voteAnswer = this.value;
+
+        document.addEventListener('submit', event => {
+            const questionForm = event.target.closest(selectors.question.form);
+            if (questionForm) {
+                event.preventDefault();
+                this.submitAnswer();
+            }
+        });
+
+        document.addEventListener('click', event => {
+            const saveVoteButton = event.target.closest(selectors.quiz.saveVoteButton);
+            if (saveVoteButton) {
+                this.saveVote();
+            }
+            const selectVoteButton = event.target.closest(selectors.quiz.selectVoteButton);
+            if (selectVoteButton) {
+                this.voteAnswer = selectVoteButton.value;
+            }
         });
     }
 
     onNotRunning() {
-        setText(Quiz.info, 'instructions_for_student');
+        setText(document.querySelector(selectors.quiz.info), 'instructions_for_student');
     }
 
     onPreparing() {
-        setText(Quiz.info, 'wait_for_instructor');
+        setText(document.querySelector(selectors.quiz.info), 'wait_for_instructor');
     }
 
     onRunning(data) {
@@ -62,7 +68,7 @@ class Student {
         }
         const started = this.quiz.question.startCountdown(data.questiontime, data.delay);
         if (!started) {
-            setText(Quiz.info, 'wait_for_instructor');
+            setText(document.querySelector(selectors.quiz.info), 'wait_for_instructor');
         }
     }
 
@@ -70,8 +76,8 @@ class Student {
         this.quiz.question.isVoteRunning = false;
         this.quiz.question.isRunning = false;
         this.quiz.question.hideTimer();
-        Quiz.hide(Question.box);
-        setText(Quiz.info, 'wait_for_instructor');
+        document.querySelector(selectors.question.box).classList.add('hidden');
+        setText(document.querySelector(selectors.quiz.info), 'wait_for_instructor');
     }
 
     onSessionClosed() {
@@ -82,20 +88,21 @@ class Student {
         if (this.quiz.question.isVoteRunning) {
             return;
         }
-        Quiz.info.html(data.html);
-        Quiz.show(Quiz.info);
-        const options = data.options;
-        for (let i = 0; i < options.length; i++) {
-            Quiz.addMathjaxElement($('#' + options[i].content_id), options[i].text);
-            if (options[i].question_type === 'stack') {
-                Quiz.renderMaximaEquation(options[i].text, options[i].content_id);
+        const quizInfo = document.querySelector(selectors.quiz.info);
+        quizInfo.innerHTML = data.html;
+        quizInfo.classList.remove('hidden');
+        quizInfo.querySelectorAll('.jazzquiz-select-vote-label').forEach(label => {
+            const attemptSpan = label.querySelector('.jazzquiz-select-vote-attempt');
+            addMathjaxElement(attemptSpan, attemptSpan.innerHTML);
+            if (label.dataset.qtype === 'stack') {
+                renderMaximaEquation(attemptSpan.innerHTML, attemptSpan.id);
             }
-        }
+        });
         this.quiz.question.isVoteRunning = true;
     }
 
     onTimerTick(timeLeft) {
-        setText(Question.timer, 'question_will_end_in_x_seconds', 'jazzquiz', timeLeft);
+        setText(document.querySelector(selectors.question.timer), 'question_will_end_in_x_seconds', 'jazzquiz', timeLeft);
     }
 
     /**
@@ -111,7 +118,7 @@ class Student {
             // eslint-disable-next-line no-undef
             tinyMCE.triggerSave();
         }
-        const serialized = Question.form.serializeArray();
+        const serialized = document.querySelector(selectors.question.form).serializeArray();
         let data = {};
         for (let name in serialized) {
             if (serialized.hasOwnProperty(name)) {
@@ -119,10 +126,12 @@ class Student {
             }
         }
         Ajax.post('save_question', data, data => {
+            const quizInfo = document.querySelector(selectors.quiz.info);
             if (data.feedback.length > 0) {
-                Quiz.show(Quiz.info.html(data.feedback));
+                quizInfo.innerHTML = data.feedback;
+                quizInfo.classList.remove('hidden');
             } else {
-                setText(Quiz.info, 'wait_for_instructor');
+                setText(quizInfo, 'wait_for_instructor');
             }
             this.quiz.question.isSaving = false;
             if (!this.quiz.question.isRunning) {
@@ -131,7 +140,7 @@ class Student {
             if (this.quiz.question.isVoteRunning) {
                 return;
             }
-            Quiz.hide(Question.box);
+            document.querySelector(selectors.question.box).classList.add('hidden');
             this.quiz.question.hideTimer();
         }).fail(() => {
             this.quiz.question.isSaving = false;
@@ -140,10 +149,11 @@ class Student {
 
     saveVote() {
         Ajax.post('save_vote', {vote: this.voteAnswer}, data => {
+            const quizInfo = document.querySelector(selectors.quiz.info);
             if (data.status === 'success') {
-                setText(Quiz.info, 'wait_for_instructor');
+                setText(quizInfo, 'wait_for_instructor');
             } else {
-                setText(Quiz.info, 'you_already_voted');
+                setText(quizInfo, 'you_already_voted');
             }
         });
     }

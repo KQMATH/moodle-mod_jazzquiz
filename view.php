@@ -165,7 +165,7 @@ function jazzquiz_view(): void {
      * and teacher, but it cannot handle the case where guest
      * access is allowed.  Hence, if guests are allowed, no further check is made.
      */
-    if ($session === null || $session->data->allowguests != 1) {
+    if ($session === null || $session->allowguests !== 1) {
         try {
             /*
              * require_capability() throws an exception if the user does not

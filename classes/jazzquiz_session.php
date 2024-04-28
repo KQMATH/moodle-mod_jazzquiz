@@ -31,47 +31,130 @@ use stdClass;
  */
 class jazzquiz_session {
 
-    /** @var jazzquiz $jazzquiz */
-    public jazzquiz $jazzquiz;
+    /** The session has been created, but the instructor has not started the quiz yet. */
+    const STATUS_NOTRUNNING = 'notrunning';
 
-    /** @var stdClass $data The jazzquiz_session database table row */
-    public stdClass $data;
+    /** The quiz has been started, but no questions have been asked yet. */
+    const STATUS_PREPARING = 'preparing';
+
+    /** A question has been started, and students are submitting their attempts. */
+    const STATUS_RUNNING = 'running';
+
+    /** The question has ended, and the instructor can review attempts and start a vote. */
+    const STATUS_REVIEWING = 'reviewing';
+
+    /** There is currently a vote running on the answers of the previous question. */
+    const STATUS_VOTING = 'voting';
+
+    /** The session has been closed, and there will be no more questions or answers. */
+    const STATUS_SESSIONCLOSED = 'sessionclosed';
+
+    /** @var int|null The id for this session */
+    public ?int $id = null;
+
+    /** @var int The jazzquiz instance this session belongs to */
+    public int $jazzquizid;
+
+    /** @var string The name for this session */
+    public string $name;
+
+    /** @var int Whether the session is open */
+    public int $sessionopen;
+
+    /** @var bool Whether students should receive feedback after answering */
+    public bool $showfeedback;
+
+    /** @var string The current state of the session */
+    public string $status;
+
+    /** @var ?int This is which JazzQuiz question was last run. Not related to session questions. */
+    public ?int $slot = null;
+
+    /** @var ?int The time the current question is allowed in seconds */
+    public ?int $currentquestiontime = null;
+
+    /** @var ?int The timestamp of the next start time */
+    public ?int $nextstarttime = null;
+
+    /** @var int Which anonymity we use for this session */
+    public int $anonymity;
+
+    /** @var int If we allow guests */
+    public int $allowguests;
+
+    /** @var int Timestamp for when this session was created. */
+    public int $created;
 
     /** @var jazzquiz_attempt[] */
-    public array $attempts;
+    public array $attempts = [];
 
     /** @var ?jazzquiz_attempt The current user's quiz attempt */
-    public ?jazzquiz_attempt $myattempt;
+    public ?jazzquiz_attempt $myattempt = null;
 
     /** @var stdClass[] Questions in this session */
-    public array $questions;
+    public array $questions = [];
 
     /**
      * Constructor.
      *
-     * @param jazzquiz $jazzquiz
-     * @param int $sessionid
+     * @param ?stdClass $record database record
+     * @param ?int $id session id to load record for, will always override $record parameter
      */
-    public function __construct(jazzquiz $jazzquiz, int $sessionid) {
+    public function __construct(?stdClass $record = null, ?int $id = null) {
         global $DB;
-        $this->jazzquiz = $jazzquiz;
-        $this->attempts = [];
-        $this->myattempt = null;
-        $this->questions = [];
-        $this->data = $DB->get_record('jazzquiz_sessions', [
-            'jazzquizid' => $this->jazzquiz->data->id,
-            'id' => $sessionid,
-        ], '*', MUST_EXIST);
+        if ($id !== null) {
+            $record = $DB->get_record('jazzquiz_sessions', ['id' => $id], '*', MUST_EXIST);
+        }
+        if (!$record) {
+            return;
+        }
+        $this->id = $record->id ?? null;
+        $this->jazzquizid = $record->jazzquizid;
+        $this->name = $record->name;
+        $this->sessionopen = $record->sessionopen;
+        $this->showfeedback = $record->showfeedback;
+        $this->status = $record->status;
+        $this->slot = $record->slot;
+        $this->currentquestiontime = $record->currentquestiontime;
+        $this->nextstarttime = $record->nextstarttime;
+        $this->anonymity = $record->anonymity;
+        $this->allowguests = $record->allowguests;
+        $this->created = $record->created;
+    }
+
+    /**
+     * Returns the current local record.
+     *
+     * @return stdClass
+     */
+    public function get_record(): stdClass {
+        $record = new stdClass();
+        if ($this->id) {
+            $record->id = $this->id;
+        }
+        $record->jazzquizid = $this->jazzquizid;
+        $record->name = $this->name;
+        $record->sessionopen = $this->sessionopen;
+        $record->showfeedback = $this->showfeedback;
+        $record->status = $this->status;
+        $record->slot = $this->slot;
+        $record->currentquestiontime = $this->currentquestiontime;
+        $record->nextstarttime = $this->nextstarttime;
+        $record->anonymity = $this->anonymity;
+        $record->allowguests = $this->allowguests;
+        $record->created = $this->created;
+        return $record;
     }
 
     /**
      * Get array of unasked slots.
      *
+     * @param jazzquiz_question[] $questions
      * @return int[] question slots.
      */
-    public function get_unasked_slots(): array {
+    public function get_unasked_slots(array $questions): array {
         $slots = [];
-        foreach ($this->jazzquiz->questions as $question) {
+        foreach ($questions as $question) {
             $asked = false;
             foreach ($this->questions as $sessionquestion) {
                 if ($sessionquestion->questionid == $question->data->questionid) {
@@ -92,7 +175,7 @@ class jazzquiz_session {
      * @return bool
      */
     private function requires_anonymous_answers(): bool {
-        return $this->data->anonymity != 3;
+        return $this->anonymity != 3;
     }
 
     /**
@@ -101,7 +184,7 @@ class jazzquiz_session {
      * @return bool
      */
     private function requires_anonymous_attendance(): bool {
-        return $this->data->anonymity == 2;
+        return $this->anonymity == 2;
     }
 
     /**
@@ -109,10 +192,10 @@ class jazzquiz_session {
      */
     public function save(): void {
         global $DB;
-        if (isset($this->data->id)) {
-            $DB->update_record('jazzquiz_sessions', $this->data);
+        if ($this->id !== null) {
+            $DB->update_record('jazzquiz_sessions', $this->get_record());
         } else {
-            $this->data->id = $DB->insert_record('jazzquiz_sessions', $this->data);
+            $this->id = $DB->insert_record('jazzquiz_sessions', $this->get_record());
         }
     }
 
@@ -194,7 +277,7 @@ class jazzquiz_session {
      */
     private function anonymize_attendance(): void {
         global $DB;
-        $attendances = $DB->get_records('jazzquiz_attendance', ['sessionid' => $this->data->id]);
+        $attendances = $DB->get_records('jazzquiz_attendance', ['sessionid' => $this->id]);
         foreach ($attendances as $attendance) {
             $attendance->userid = null;
             $DB->update_record('jazzquiz_attendance', $attendance);
@@ -222,12 +305,12 @@ class jazzquiz_session {
      */
     public function end_session(): void {
         $this->anonymize_users();
-        $this->data->status = 'notrunning';
-        $this->data->sessionopen = 0;
-        $this->data->currentquestiontime = null;
-        $this->data->nextstarttime = null;
+        $this->status = self::STATUS_NOTRUNNING;
+        $this->sessionopen = 0;
+        $this->currentquestiontime = null;
+        $this->nextstarttime = null;
         foreach ($this->attempts as $attempt) {
-            $attempt->close_attempt($this->jazzquiz);
+            $attempt->close_attempt();
         }
         $this->save();
     }
@@ -242,12 +325,9 @@ class jazzquiz_session {
     public function merge_responses(int $slot, string $from, string $into): void {
         global $DB;
         $merge = new stdClass();
-        $merge->sessionid = $this->data->id;
+        $merge->sessionid = $this->id;
         $merge->slot = $slot;
-        $merge->ordernum = count($DB->get_records('jazzquiz_merges', [
-            'sessionid' => $this->data->id,
-            'slot' => $slot,
-        ]));
+        $merge->ordernum = $DB->count_records('jazzquiz_merges', ['sessionid' => $this->id, 'slot' => $slot]);
         $merge->original = $from;
         $merge->merged = $into;
         $DB->insert_record('jazzquiz_merges', $merge);
@@ -261,7 +341,7 @@ class jazzquiz_session {
     public function undo_merge(int $slot): void {
         global $DB;
         $merge = $DB->get_records('jazzquiz_merges', [
-            'sessionid' => $this->data->id,
+            'sessionid' => $this->id,
             'slot' => $slot,
         ], 'ordernum desc', '*', 0, 1);
         if (count($merge) > 0) {
@@ -279,10 +359,7 @@ class jazzquiz_session {
      */
     public function get_merged_responses(int $slot, array $responses): array {
         global $DB;
-        $merges = $DB->get_records('jazzquiz_merges', [
-            'sessionid' => $this->data->id,
-            'slot' => $slot,
-        ]);
+        $merges = $DB->get_records('jazzquiz_merges', ['sessionid' => $this->id, 'slot' => $slot]);
         $count = 0;
         foreach ($merges as $merge) {
             foreach ($responses as &$response) {
@@ -300,17 +377,18 @@ class jazzquiz_session {
      *
      * @param int $questionid (from question bank)
      * @param int $questiontime in seconds ("<0" => no time, "0" => default)
+     * @param int $waitforquestiontime seconds until next question
      * @return array $success, $question_time
      */
-    public function start_question(int $questionid, int $questiontime): array {
+    public function start_question(int $questionid, int $questiontime, int $waitforquestiontime): array {
         global $DB;
         $transaction = $DB->start_delegated_transaction();
 
         $sessionquestion = new stdClass();
-        $sessionquestion->sessionid = $this->data->id;
+        $sessionquestion->sessionid = $this->id;
         $sessionquestion->questionid = $questionid;
         $sessionquestion->questiontime = $questiontime;
-        $sessionquestion->slot = count($DB->get_records('jazzquiz_session_questions', ['sessionid' => $this->data->id])) + 1;
+        $sessionquestion->slot = count($DB->get_records('jazzquiz_session_questions', ['sessionid' => $this->id])) + 1;
         $sessionquestion->id = $DB->insert_record('jazzquiz_session_questions', $sessionquestion);
         $this->questions[$sessionquestion->slot] = $sessionquestion;
 
@@ -319,8 +397,8 @@ class jazzquiz_session {
             $attempt->save();
         }
 
-        $this->data->currentquestiontime = $questiontime;
-        $this->data->nextstarttime = time() + $this->jazzquiz->data->waitforquestiontime;
+        $this->currentquestiontime = $questiontime;
+        $this->nextstarttime = time() + $waitforquestiontime;
         $this->save();
 
         $transaction->allow_commit();
@@ -360,7 +438,7 @@ class jazzquiz_session {
             return;
         }
         $attendance = $DB->get_record('jazzquiz_attendance', [
-            'sessionid' => $this->data->id,
+            'sessionid' => $this->id,
             'userid' => $USER->id,
         ]);
         if ($attendance) {
@@ -368,7 +446,7 @@ class jazzquiz_session {
             $DB->update_record('jazzquiz_attendance', $attendance);
         } else {
             $attendance = new stdClass();
-            $attendance->sessionid = $this->data->id;
+            $attendance->sessionid = $this->id;
             $attendance->userid = $USER->id;
             $attendance->numresponses = $numresponses;
             $DB->insert_record('jazzquiz_attendance', $attendance);
@@ -381,8 +459,8 @@ class jazzquiz_session {
     public function load_attempts(): void {
         global $DB;
         $this->attempts = [];
-        foreach ($DB->get_records('jazzquiz_attempts', ['sessionid' => $this->data->id]) as $attempt) {
-            $this->attempts[$attempt->id] = jazzquiz_attempt::get_by_id($attempt->id);
+        foreach ($DB->get_records('jazzquiz_attempts', ['sessionid' => $this->id]) as $record) {
+            $this->attempts[$record->id] = new jazzquiz_attempt($record);
         }
     }
 
@@ -398,7 +476,7 @@ class jazzquiz_session {
      */
     public function load_session_questions(): void {
         global $DB;
-        $this->questions = $DB->get_records('jazzquiz_session_questions', ['sessionid' => $this->data->id], 'slot');
+        $this->questions = $DB->get_records('jazzquiz_session_questions', ['sessionid' => $this->id], 'slot');
         foreach ($this->questions as $question) {
             unset($this->questions[$question->id]);
             $this->questions[$question->slot] = $question;
@@ -441,7 +519,7 @@ class jazzquiz_session {
      *
      * @return string HTML
      */
-    public function get_question_right_response(): string {
+    public function get_question_right_response(jazzquiz $jazzquiz): string {
         // Use the current user's attempt to render the question with the right response.
         $quba = $this->myattempt->quba;
         $slot = count($this->questions);
@@ -457,9 +535,9 @@ class jazzquiz_session {
         $reviewoptions->specificfeedback = 1;
         $reviewoptions->generalfeedback = 1;
         /** @var output\renderer $renderer */
-        $renderer = $this->jazzquiz->renderer;
+        $renderer = $jazzquiz->renderer;
         ob_start();
-        $html = $renderer->render_question($this->jazzquiz, $this->myattempt->quba, $slot, true, $reviewoptions);
+        $html = $renderer->render_question($jazzquiz, $this->myattempt->quba, $slot, true, $reviewoptions);
         $htmlechoed = ob_get_clean();
         return $html . $htmlechoed;
     }
@@ -499,7 +577,7 @@ class jazzquiz_session {
     public function get_attendances(): array {
         global $DB;
         $attendances = [];
-        $records = $DB->get_records('jazzquiz_attendance', ['sessionid' => $this->data->id]);
+        $records = $DB->get_records('jazzquiz_attendance', ['sessionid' => $this->id]);
         foreach ($records as $record) {
             $attendances[] = [
                 'idnumber' => $this->user_idnumber_for_attendance($record->userid),

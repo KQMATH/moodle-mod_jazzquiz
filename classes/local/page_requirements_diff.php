@@ -24,7 +24,7 @@ use page_requirements_manager;
  * To load a question without refreshing the page, we need the JavaScript for the question.
  * Moodle stores this in page_requirements_manager, but there is no way to read the JS that is required.
  * This class takes in the manager and keeps the JS for when we want to get a diff.
- * NOTE: This class is placed here because it will only ever be used by renderer::render_question_form()
+ * NOTE: This will only ever be used by renderer::render_question_form()
  * TODO: Look into removing this class in the future.
  *
  * @package   mod_jazzquiz

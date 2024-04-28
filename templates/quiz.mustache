@@ -21,14 +21,7 @@
 
     Example context (json):
     {
-        "instructor": true,
-        "buttons": [
-            {
-                "id": "improvise",
-                "icon": "edit",
-                "text": "Improvise"
-            }
-        ]
+        "instructor": true
     }
 }}
 <div id="jazzquiz">
@@ -36,23 +29,54 @@
     <div id="jazzquiz_controls_box" class="jazzquiz-box">
         <div id="jazzquiz_controls">
             <div class="quiz-list-buttons quiz-control-buttons hidden">
-                {{#buttons}}
-                <button id="jazzquiz_control_{{id}}" class="btn">
-                    <i class="fa fa-{{icon}}"></i> {{text}}
+                <button class="btn btn-secondary jazzquiz-control-button" data-control="repoll">
+                    <i class="fa fa-repeat"></i> {{#str}}repoll, jazzquiz{{/str}}
                 </button>
-                {{/buttons}}
-                <div style="clear:both;"></div>
+                <button class="btn btn-secondary jazzquiz-control-button" data-control="vote">
+                    <i class="fa fa-bar-chart"></i> {{#str}}vote, jazzquiz{{/str}}
+                </button>
+                <button class="btn btn-secondary jazzquiz-control-button" data-control="improvise">
+                    <i class="fa fa-edit"></i> {{#str}}improvise, jazzquiz{{/str}}
+                </button>
+                <button class="btn btn-secondary jazzquiz-control-button" data-control="jump">
+                    <i class="fa fa-bars"></i> {{#str}}jump, jazzquiz{{/str}}
+                </button>
+                <button class="btn btn-secondary jazzquiz-control-button" data-control="next">
+                    <i class="fa fa-forward"></i> {{#str}}next, jazzquiz{{/str}}
+                </button>
+                <button class="btn btn-secondary jazzquiz-control-button" data-control="random">
+                    <i class="fa fa-random"></i> {{#str}}random, jazzquiz{{/str}}
+                </button>
+                <button class="btn btn-secondary jazzquiz-control-button" data-control="end">
+                    <i class="fa fa-close"></i> {{#str}}end, jazzquiz{{/str}}
+                </button>
+                <button class="btn btn-secondary jazzquiz-control-button" data-control="fullscreen">
+                    <i class="fa fa-expand"></i> {{#str}}fullscreen, jazzquiz{{/str}}
+                </button>
+                <button class="btn btn-secondary jazzquiz-control-button" data-control="quit">
+                    <i class="fa fa-window-close"></i> {{#str}}quit, jazzquiz{{/str}}
+                </button>
+                <button class="btn btn-secondary jazzquiz-control-button" data-control="responses">
+                    <i class="fa fa-square-o"></i> {{#str}}responses, jazzquiz{{/str}}
+                </button>
+                <button class="btn btn-secondary jazzquiz-control-button" data-control="answer">
+                    <i class="fa fa-square-o"></i> {{#str}}answer, jazzquiz{{/str}}
+                </button>
             </div>
             <div id="jazzquiz_improvise_menu" class="start-question-menu"></div>
             <div id="jazzquiz_jump_menu" class="start-question-menu"></div>
-            <div class="quiz-list-buttons">
-                <button id="jazzquiz_control_startquiz" class="btn">
-                    <i class="fa fa-start"></i> {{#str}}startquiz, jazzquiz{{/str}}
-                </button>
-                <h4 class="inline"></h4>
-                <button id="jazzquiz_control_exit" class="btn">
-                    <i class="fa fa-close"></i> {{#str}}exit, jazzquiz{{/str}}
-                </button>
+            <div id="jazzquiz_start_quiz_wrapper" class="quiz-list-buttons">
+                <span>
+                    <button id="jazzquiz_start_quiz_button" class="btn btn-primary">
+                        <i class="fa fa-play"></i> {{#str}}startquiz, jazzquiz{{/str}}
+                    </button>
+                </span>
+                <h4 id="jazzquiz_students_joined_counter"></h4>
+                <span>
+                    <button id="jazzquiz_exit_button" class="btn btn-secondary">
+                        <i class="fa fa-close"></i> {{#str}}exit, jazzquiz{{/str}}
+                    </button>
+                </span>
             </div>
             <div id="jazzquiz_control_separator"></div>
         </div>

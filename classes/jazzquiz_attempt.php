@@ -46,8 +46,8 @@ class jazzquiz_attempt {
     /** The attempt is finished. */
     const FINISHED = 30;
 
-    /** @var int The jazzquiz attempt id */
-    public int $id;
+    /** @var ?int The jazzquiz attempt id */
+    public ?int $id = null;
 
     /** @var int The jazzquiz session id */
     public int $sessionid;
@@ -82,9 +82,17 @@ class jazzquiz_attempt {
     /**
      * Constructor.
      *
-     * @param stdClass $record
+     * @param ?stdClass $record database record
+     * @param ?int $id attempt id to load record for, will always override $record parameter
      */
-    private function __construct(stdClass $record) {
+    public function __construct(?stdClass $record = null, ?int $id = null) {
+        global $DB;
+        if ($id !== null) {
+            $record = $DB->get_record('jazzquiz_attempts', ['id' => $id], '*', MUST_EXIST);
+        }
+        if (!$record) {
+            return;
+        }
         $this->id = $record->id;
         $this->sessionid = $record->sessionid;
         $this->userid = $record->userid;
@@ -180,7 +188,7 @@ class jazzquiz_attempt {
         // TODO: Don't suppress the error if it becomes possible to save QUBAs without slots.
         @question_engine::save_questions_usage_by_activity($quba);
         $id = $DB->insert_record('jazzquiz_attempts', [
-            'sessionid' => $session->data->id,
+            'sessionid' => $session->id,
             'userid' => isguestuser($USER->id) ? null : $USER->id,
             'questionengid' => $quba->get_id(),
             'guestsession' => isguestuser($USER->id) ? $USER->sesskey : null,
@@ -190,21 +198,9 @@ class jazzquiz_attempt {
             'timefinish' => null,
             'timemodified' => time(),
         ]);
-        $attempt = self::get_by_id($id);
+        $attempt = new jazzquiz_attempt(null, $id);
         $attempt->create_missing_attempts($session);
         return $attempt;
-    }
-
-    /**
-     * Helper function to properly load a JazzQuiz attempt by its ID.
-     *
-     * @param int $id
-     * @return jazzquiz_attempt
-     */
-    public static function get_by_id(int $id): jazzquiz_attempt {
-        global $DB;
-        $record = $DB->get_record('jazzquiz_attempts', ['id' => $id], '*', MUST_EXIST);
-        return new jazzquiz_attempt($record);
     }
 
     /**
@@ -220,7 +216,7 @@ class jazzquiz_attempt {
                  WHERE sessionid = :sessionid
                    AND (userid = :userid OR guestsession = :sesskey)';
         $record = $DB->get_record_sql($sql, [
-            'sessionid' => $session->data->id,
+            'sessionid' => $session->id,
             'userid' => $USER->id,
             'sesskey' => $USER->sesskey,
         ]);
@@ -332,14 +328,11 @@ class jazzquiz_attempt {
     }
 
     /**
-     * Closes the attempt.
-     *
-     * @param jazzquiz $jazzquiz
+     * Close attempt.
      */
-    public function close_attempt(jazzquiz $jazzquiz): void {
+    public function close_attempt(): void {
         $this->quba->finish_all_questions(time());
-        // We want the instructor to remain in preview mode.
-        if (!$jazzquiz->is_instructor()) {
+        if ($this->status !== self::PREVIEW) {
             $this->status = self::FINISHED;
         }
         $this->timefinish = time();

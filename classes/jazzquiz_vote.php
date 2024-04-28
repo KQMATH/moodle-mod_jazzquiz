@@ -52,10 +52,7 @@ class jazzquiz_vote {
      */
     public function get_results(): array {
         global $DB;
-        return $DB->get_records('jazzquiz_votes', [
-            'sessionid' => $this->sessionid,
-            'slot' => $this->slot,
-        ]);
+        return $DB->get_records('jazzquiz_votes', ['sessionid' => $this->sessionid, 'slot' => $this->slot]);
     }
 
     /**

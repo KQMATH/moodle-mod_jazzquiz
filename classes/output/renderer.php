@@ -91,9 +91,9 @@ class renderer extends \plugin_renderer_base {
     public function join_quiz_form(student_start_form $form, jazzquiz_session $session): void {
         $anonstr = ['', 'anonymous_answers_info', 'fully_anonymous_info', 'nonanonymous_session_info'];
         echo $this->render_from_template('jazzquiz/join_session', [
-            'name' => $session->data->name,
+            'name' => $session->name,
             'started' => $session->myattempt !== false,
-            'anonymity_info' => get_string($anonstr[$session->data->anonymity], 'jazzquiz'),
+            'anonymity_info' => get_string($anonstr[$session->anonymity], 'jazzquiz'),
             'form' => $form->render(),
         ]);
     }
@@ -123,31 +123,7 @@ class renderer extends \plugin_renderer_base {
      */
     public function render_quiz(jazzquiz_session $session): void {
         $this->require_quiz($session);
-        $buttons = function($buttons) {
-            $result = [];
-            foreach ($buttons as $button) {
-                $result[] = [
-                    'icon' => $button[0],
-                    'id' => $button[1],
-                    'text' => get_string($button[1], 'jazzquiz'),
-                ];
-            }
-            return $result;
-        };
         echo $this->render_from_template('jazzquiz/quiz', [
-            'buttons' => $buttons([
-                ['repeat', 'repoll'],
-                ['bar-chart', 'vote'],
-                ['edit', 'improvise'],
-                ['bars', 'jump'],
-                ['forward', 'next'],
-                ['random', 'random'],
-                ['close', 'end'],
-                ['expand', 'fullscreen'],
-                ['window-close', 'quit'],
-                ['square-o', 'responses'],
-                ['square-o', 'answer'],
-            ]),
             'instructor' => $session->jazzquiz->is_instructor(),
         ]);
     }
@@ -221,10 +197,7 @@ class renderer extends \plugin_renderer_base {
                 ];
             }, $sessions),
             'params' => array_map(function ($key, $value) {
-                return [
-                    'name' => $key,
-                    'value' => $value,
-                ];
+                return ['name' => $key, 'value' => $value];
             }, array_keys($selecturl->params()), $selecturl->params()),
         ];
     }
@@ -275,10 +248,11 @@ class renderer extends \plugin_renderer_base {
      * View session report.
      *
      * @param jazzquiz_session $session
+     * @param jazzquiz $jazzquiz
      * @param moodle_url $url
      * @return array
      */
-    public function view_session_report(jazzquiz_session $session, moodle_url $url): array {
+    public function view_session_report(jazzquiz_session $session, jazzquiz $jazzquiz, moodle_url $url): array {
         $attempt = reset($session->attempts);
         if (!$attempt) {
             $strnoattempts = get_string('no_attempts_found', 'jazzquiz');
@@ -290,7 +264,7 @@ class renderer extends \plugin_renderer_base {
             $qattempt = $attempt->quba->get_question_attempt($qubaslot);
             $question = $qattempt->get_question();
             $results = $session->get_question_results_list($qubaslot);
-            list($results['responses'], $mergecount) = $session->get_merged_responses($qubaslot, $results['responses']);
+            [$results['responses'], $mergecount] = $session->get_merged_responses($qubaslot, $results['responses']);
             $slots[] = [
                 'num' => $qubaslot,
                 'name' => str_replace('{IMPROV}', '', $question->name),
@@ -302,13 +276,12 @@ class renderer extends \plugin_renderer_base {
 
         // TODO: Slots should not be passed as parameter to AMD module.
         // It quickly gets over 1KB, which shows debug warning.
-        $this->require_review($session, $slots);
+        $this->require_review($session, $jazzquiz, $slots);
 
         $attendances = $session->get_attendances();
-        $jazzquiz = $session->jazzquiz;
         $sessions = $jazzquiz->get_sessions();
         return [
-            'select_session' => $jazzquiz->renderer->get_select_session_context($url, $sessions, $session->data->id),
+            'select_session' => $jazzquiz->renderer->get_select_session_context($url, $sessions, $session->id),
             'session' => [
                 'slots' => $slots,
                 'students' => $attendances,
@@ -316,7 +289,7 @@ class renderer extends \plugin_renderer_base {
                 'count_answered' => count($attendances),
                 'cmid' => $jazzquiz->cm->id,
                 'quizid' => $jazzquiz->data->id,
-                'id' => $session->data->id,
+                'id' => $session->id,
             ],
         ];
     }
@@ -325,12 +298,12 @@ class renderer extends \plugin_renderer_base {
      * Require the core javascript.
      *
      * @param jazzquiz_session $session
+     * @param jazzquiz $jazzquiz
      */
-    public function require_core(jazzquiz_session $session): void {
+    public function require_core(jazzquiz_session $session, jazzquiz $jazzquiz): void {
         $this->page->requires->js_call_amd('mod_jazzquiz/core', 'initialize', [
-            $session->jazzquiz->cm->id,
-            $session->jazzquiz->data->id,
-            $session->data->id,
+            $jazzquiz->cm->id,
+            $session->id,
             $session->myattempt?->id ?? 0,
             sesskey(),
         ]);
@@ -341,11 +314,11 @@ class renderer extends \plugin_renderer_base {
      *
      * @param jazzquiz_session $session
      */
-    public function require_quiz(jazzquiz_session $session): void {
-        $this->require_core($session);
+    public function require_quiz(jazzquiz_session $session, jazzquiz $jazzquiz): void {
+        $this->require_core($session, $jazzquiz);
         $this->page->requires->js_call_amd('core_question/question_engine', 'initSubmitButton');
-        if ($session->jazzquiz->is_instructor()) {
-            $count = count($session->jazzquiz->questions);
+        if ($jazzquiz->is_instructor()) {
+            $count = count($jazzquiz->questions);
             $params = [$count, false, []];
             $this->page->requires->js_call_amd('mod_jazzquiz/instructor', 'initialize', $params);
         } else {
@@ -369,11 +342,10 @@ class renderer extends \plugin_renderer_base {
      * @param jazzquiz_session $session
      * @param array $slots
      */
-    public function require_review(jazzquiz_session $session, array $slots): void {
-        $this->require_core($session);
-        $count = count($session->jazzquiz->questions);
-        $params = [$count, true, $slots];
-        $this->page->requires->js_call_amd('mod_jazzquiz/instructor', 'initialize', $params);
+    public function require_review(jazzquiz_session $session, jazzquiz $jazzquiz, array $slots): void {
+        $this->require_core($session, $jazzquiz);
+        $count = count($jazzquiz->questions);
+        $this->page->requires->js_call_amd('mod_jazzquiz/instructor', 'initialize', [$count, true, $slots]);
     }
 
 }

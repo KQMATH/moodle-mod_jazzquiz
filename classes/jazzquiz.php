@@ -141,15 +141,8 @@ class jazzquiz {
      */
     public function load_open_session(): ?jazzquiz_session {
         global $DB;
-        $sessions = $DB->get_records('jazzquiz_sessions', [
-            'jazzquizid' => $this->data->id,
-            'sessionopen' => 1,
-        ], 'id');
-        if (empty($sessions)) {
-            return null;
-        }
-        $session = reset($sessions);
-        return new jazzquiz_session($this, $session->id);
+        $session = $DB->get_record('jazzquiz_sessions', ['jazzquizid' => $this->data->id, 'sessionopen' => 1]);
+        return empty($session) ? null : new jazzquiz_session($session);
     }
 
     /**
@@ -159,10 +152,7 @@ class jazzquiz {
      */
     public function is_session_open(): bool {
         global $DB;
-        return $DB->record_exists('jazzquiz_sessions', [
-            'jazzquizid' => $this->data->id,
-            'sessionopen' => 1,
-        ]);
+        return $DB->record_exists('jazzquiz_sessions', ['jazzquizid' => $this->data->id, 'sessionopen' => 1]);
     }
 
     /**
@@ -182,7 +172,7 @@ class jazzquiz {
         $session->name = $name;
         $session->jazzquizid = $this->data->id;
         $session->sessionopen = 1;
-        $session->status = 'notrunning';
+        $session->status = jazzquiz_session::STATUS_NOTRUNNING;
         $session->slot = 0;
         $session->anonymity = $anonymity;
         $session->showfeedback = false;

@@ -84,7 +84,7 @@ class exporter {
                 'answers' => $answers,
             ];
         }
-        $name = 'session_' . $session->data->id . '_' . $session->data->name;
+        $name = 'session_' . $session->id . '_' . $session->name;
         return [$name, $slots, $users];
     }
 
@@ -131,7 +131,7 @@ class exporter {
         $session->load_attempts();
         $responses = $session->get_question_results_list($slot);
         $responses = $responses['responses'];
-        $name = 'session_ ' . $session->data->id . '_' . $session->data->name . '_' . $question->name;
+        $name = 'session_ ' . $session->id . '_' . $session->name . '_' . $question->name;
         return [$name, $question->questiontext, $responses];
     }
 
@@ -157,7 +157,7 @@ class exporter {
      * @param jazzquiz_session $session
      */
     public function export_attendance_csv(jazzquiz_session $session): void {
-        $name = $session->data->id . '_' . $session->data->name;
+        $name = $session->id . '_' . $session->name;
         $attendances = $session->get_attendances();
         $this->csv_file("session_{$name}_attendance");
         echo "IdNumber\tFirst Name\tLast Name\tResponses\r\n";

@@ -13,8 +13,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-import {Quiz, Ajax, setText} from 'mod_jazzquiz/core';
+import {Ajax, setText} from 'mod_jazzquiz/core';
 import selectors from 'mod_jazzquiz/selectors';
+import {renderAllMathjax} from 'mod_jazzquiz/math_rendering';
 
 /**
  * Current question.
@@ -40,28 +41,18 @@ export class Question {
         this.timerInterval = 0;
     }
 
-    static get box() {
-        return document.querySelector(selectors.question.box);
-    }
-
-    static get timer() {
-        return document.querySelector(selectors.question.timer);
-    }
-
-    static get form() {
-        return document.querySelector(selectors.question.form);
-    }
-
     /**
      * Request the current question form.
      */
     refresh() {
         Ajax.get('get_question_form', {}, data => {
             if (data.is_already_submitted) {
-                setText(Quiz.info, 'wait_for_instructor');
+                setText(document.querySelector(selectors.quiz.info), 'wait_for_instructor');
                 return;
             }
-            Quiz.show(Question.box.html(data.html));
+            const questionBox = document.querySelector(selectors.question.box);
+            questionBox.innerHTML = data.html;
+            questionBox.classList.remove('hidden');
             // eslint-disable-next-line no-eval
             eval(data.js);
             data.css.forEach(cssUrl => {
@@ -75,7 +66,7 @@ export class Question {
             if (this.quiz.role.onQuestionRefreshed !== undefined) {
                 this.quiz.role.onQuestionRefreshed(data);
             }
-            Quiz.renderAllMathjax();
+            renderAllMathjax();
         });
     }
 
@@ -83,7 +74,7 @@ export class Question {
      * Hide the question "ending in" timer, and clears the interval.
      */
     hideTimer() {
-        Quiz.hide(Question.timer);
+        document.querySelector(selectors.question.timer).classList.add('hidden');
         clearInterval(this.timerInterval);
         this.timerInterval = 0;
     }
@@ -93,15 +84,16 @@ export class Question {
      * @param {number} questionTime in seconds
      */
     onCountdownTick(questionTime) {
+        const quizInfo = document.querySelector(selectors.quiz.info);
         this.countdownTimeLeft--;
         if (this.countdownTimeLeft <= 0) {
             clearInterval(this.countdownInterval);
             this.countdownInterval = 0;
             this.startAttempt(questionTime);
         } else if (this.countdownTimeLeft !== 0) {
-            setText(Quiz.info, 'question_will_start_in_x_seconds', 'jazzquiz', this.countdownTimeLeft);
+            setText(quizInfo, 'question_will_start_in_x_seconds', 'jazzquiz', this.countdownTimeLeft);
         } else {
-            setText(Quiz.info, 'question_will_start_now');
+            setText(quizInfo, 'question_will_start_now');
         }
     }
 
@@ -166,7 +158,7 @@ export class Question {
      * @param {number} questionTime
      */
     startAttempt(questionTime) {
-        Quiz.hide(Quiz.info);
+        document.querySelector(selectors.quiz.info).classList.add('hidden');
         this.refresh();
         // Set this to true so that we don't keep calling this over and over.
         this.isRunning = true;
@@ -181,7 +173,7 @@ export class Question {
     }
 
     static isLoaded() {
-        return Question.box.html() !== '';
+        return document.querySelector(selectors.question.box).innerHTML.length > 0;
     }
 
 }
