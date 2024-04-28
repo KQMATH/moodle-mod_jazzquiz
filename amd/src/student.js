@@ -15,145 +15,145 @@
 
 /**
  * @module    mod_jazzquiz
- * @author    Sebastian S. Gundersen <sebastsg@stud.ntnu.no>
+ * @author    Sebastian S. Gundersen <sebastian@sgundersen.com>
  * @copyright 2014 University of Wisconsin - Madison
  * @copyright 2018 NTNU
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define(['jquery', 'mod_jazzquiz/core'], function($, Jazz) {
+import $ from 'jquery';
+import Jazz from 'mod_jazzquiz/core';
 
-    const Quiz = Jazz.Quiz;
-    const Question = Jazz.Question;
-    const Ajax = Jazz.Ajax;
-    const setText = Jazz.setText;
+const Quiz = Jazz.Quiz;
+const Question = Jazz.Question;
+const Ajax = Jazz.Ajax;
+const setText = Jazz.setText;
 
-    class Student {
+class Student {
 
-        /**
-         * @param {Quiz} quiz
-         */
-        constructor(quiz) {
-            this.quiz = quiz;
-            this.voteAnswer = undefined;
-            let self = this;
-            $(document).on('submit', '#jazzquiz_question_form', function(event) {
-                event.preventDefault();
-                self.submitAnswer();
-            }).on('click', '#jazzquiz_save_vote', function() {
-                self.saveVote();
-            }).on('click', '.jazzquiz-select-vote', function() {
-                self.voteAnswer = this.value;
-            });
+    /**
+     * @param {Quiz} quiz
+     */
+    constructor(quiz) {
+        this.quiz = quiz;
+        this.voteAnswer = undefined;
+        let self = this;
+        $(document).on('submit', '#jazzquiz_question_form', function(event) {
+            event.preventDefault();
+            self.submitAnswer();
+        }).on('click', '#jazzquiz_save_vote', function() {
+            self.saveVote();
+        }).on('click', '.jazzquiz-select-vote', function() {
+            self.voteAnswer = this.value;
+        });
+    }
+
+    onNotRunning() {
+        setText(Quiz.info, 'instructions_for_student');
+    }
+
+    onPreparing() {
+        setText(Quiz.info, 'wait_for_instructor');
+    }
+
+    onRunning(data) {
+        if (this.quiz.question.isRunning) {
+            return;
         }
-
-        onNotRunning() {
-            setText(Quiz.info, 'instructions_for_student');
-        }
-
-        onPreparing() {
+        const started = this.quiz.question.startCountdown(data.questiontime, data.delay);
+        if (!started) {
             setText(Quiz.info, 'wait_for_instructor');
         }
+    }
 
-        onRunning(data) {
-            if (this.quiz.question.isRunning) {
-                return;
+    onReviewing() {
+        this.quiz.question.isVoteRunning = false;
+        this.quiz.question.isRunning = false;
+        this.quiz.question.hideTimer();
+        Quiz.hide(Question.box);
+        setText(Quiz.info, 'wait_for_instructor');
+    }
+
+    onSessionClosed() {
+        window.location = location.href.split('&')[0];
+    }
+
+    onVoting(data) {
+        if (this.quiz.question.isVoteRunning) {
+            return;
+        }
+        Quiz.info.html(data.html);
+        Quiz.show(Quiz.info);
+        const options = data.options;
+        for (let i = 0; i < options.length; i++) {
+            Quiz.addMathjaxElement($('#' + options[i].content_id), options[i].text);
+            if (options[i].question_type === 'stack') {
+                Quiz.renderMaximaEquation(options[i].text, options[i].content_id);
             }
-            const started = this.quiz.question.startCountdown(data.questiontime, data.delay);
-            if (!started) {
+        }
+        this.quiz.question.isVoteRunning = true;
+    }
+
+    onTimerTick(timeLeft) {
+        setText(Question.timer, 'question_will_end_in_x_seconds', 'jazzquiz', timeLeft);
+    }
+
+    /**
+     * Submit answer for the current question.
+     */
+    submitAnswer() {
+        if (this.quiz.question.isSaving) {
+            // Don't save twice.
+            return;
+        }
+        this.quiz.question.isSaving = true;
+        if (typeof tinyMCE !== 'undefined') {
+            // eslint-disable-next-line no-undef
+            tinyMCE.triggerSave();
+        }
+        const serialized = Question.form.serializeArray();
+        let data = {};
+        for (let name in serialized) {
+            if (serialized.hasOwnProperty(name)) {
+                data[serialized[name].name] = serialized[name].value;
+            }
+        }
+        Ajax.post('save_question', data, data => {
+            if (data.feedback.length > 0) {
+                Quiz.show(Quiz.info.html(data.feedback));
+            } else {
                 setText(Quiz.info, 'wait_for_instructor');
             }
-        }
-
-        onReviewing() {
-            this.quiz.question.isVoteRunning = false;
-            this.quiz.question.isRunning = false;
-            this.quiz.question.hideTimer();
-            Quiz.hide(Question.box);
-            setText(Quiz.info, 'wait_for_instructor');
-        }
-
-        onSessionClosed() {
-            window.location = location.href.split('&')[0];
-        }
-
-        onVoting(data) {
+            this.quiz.question.isSaving = false;
+            if (!this.quiz.question.isRunning) {
+                return;
+            }
             if (this.quiz.question.isVoteRunning) {
                 return;
             }
-            Quiz.info.html(data.html);
-            Quiz.show(Quiz.info);
-            const options = data.options;
-            for (let i = 0; i < options.length; i++) {
-                Quiz.addMathjaxElement($('#' + options[i].content_id), options[i].text);
-                if (options[i].question_type === 'stack') {
-                    Quiz.renderMaximaEquation(options[i].text, options[i].content_id);
-                }
-            }
-            this.quiz.question.isVoteRunning = true;
-        }
-
-        onTimerTick(timeLeft) {
-            setText(Question.timer, 'question_will_end_in_x_seconds', 'jazzquiz', timeLeft);
-        }
-
-        /**
-         * Submit answer for the current question.
-         */
-        submitAnswer() {
-            if (this.quiz.question.isSaving) {
-                // Don't save twice.
-                return;
-            }
-            this.quiz.question.isSaving = true;
-            if (typeof tinyMCE !== 'undefined') {
-                // eslint-disable-next-line no-undef
-                tinyMCE.triggerSave();
-            }
-            const serialized = Question.form.serializeArray();
-            let data = {};
-            for (let name in serialized) {
-                if (serialized.hasOwnProperty(name)) {
-                    data[serialized[name].name] = serialized[name].value;
-                }
-            }
-            Ajax.post('save_question', data, data => {
-                if (data.feedback.length > 0) {
-                    Quiz.show(Quiz.info.html(data.feedback));
-                } else {
-                    setText(Quiz.info, 'wait_for_instructor');
-                }
-                this.quiz.question.isSaving = false;
-                if (!this.quiz.question.isRunning) {
-                    return;
-                }
-                if (this.quiz.question.isVoteRunning) {
-                    return;
-                }
-                Quiz.hide(Question.box);
-                this.quiz.question.hideTimer();
-            }).fail(() => {
-                this.quiz.question.isSaving = false;
-            });
-        }
-
-        saveVote() {
-            Ajax.post('save_vote', {vote: this.voteAnswer}, data => {
-                if (data.status === 'success') {
-                    setText(Quiz.info, 'wait_for_instructor');
-                } else {
-                    setText(Quiz.info, 'you_already_voted');
-                }
-            });
-        }
-
+            Quiz.hide(Question.box);
+            this.quiz.question.hideTimer();
+        }).fail(() => {
+            this.quiz.question.isSaving = false;
+        });
     }
 
-    return {
-        initialize: () => {
-            let quiz = new Quiz(Student);
-            quiz.poll(2000);
-        }
-    };
+    saveVote() {
+        Ajax.post('save_vote', {vote: this.voteAnswer}, data => {
+            if (data.status === 'success') {
+                setText(Quiz.info, 'wait_for_instructor');
+            } else {
+                setText(Quiz.info, 'you_already_voted');
+            }
+        });
+    }
 
-});
+}
+
+/**
+ * Initialize student session.
+ */
+export function initialize() {
+    let quiz = new Quiz(Student);
+    quiz.poll(2000);
+}

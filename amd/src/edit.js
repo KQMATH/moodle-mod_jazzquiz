@@ -15,118 +15,114 @@
 
 /**
  * @module     mod_jazzquiz
- * @author     Sebastian S. Gundersen <sebastsg@stud.ntnu.no>
+ * @author     Sebastian S. Gundersen <sebastian@sgundersen.com>
  * @copyright  2015 University of Wisconsin - Madison
  * @copyright  2018 NTNU
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define(['jquery'], function($) {
+import $ from 'jquery';
+import selectors from 'mod_jazzquiz/selectors';
 
-    /**
-     * Submit the question order to the server. An empty array will delete all questions.
-     * @param {Array.<number>} order
-     * @param {number} courseModuleId
-     */
-    function submitQuestionOrder(order, courseModuleId) {
+/**
+ * Submit the question order to the server. An empty array will delete all questions.
+ * @param {Array.<number>} order
+ * @param {number} courseModuleId
+ */
+function submitQuestionOrder(order, courseModuleId) {
+    $.post('edit.php', {
+        id: courseModuleId,
+        action: 'order',
+        order: JSON.stringify(order)
+    }, () => location.reload()); // TODO: Correct locally instead, but for now just refresh.
+}
+
+/**
+ * @returns {Array} The current question order.
+ */
+function getQuestionOrder() {
+    const questions = document.querySelectorAll('.questionlist li');
+    return questions.map(question => question.dataset.questionId);
+}
+
+/**
+ * Move a question up or down by a specified offset.
+ * @param {number} questionId
+ * @param {number} offset Negative to move down, positive to move up
+ * @returns {Array}
+ */
+function offsetQuestion(questionId, offset) {
+    let order = getQuestionOrder();
+    let originalIndex = order.indexOf(questionId);
+    if (originalIndex === -1) {
+        return order;
+    }
+    for (let i = 0; i < order.length; i++) {
+        if (i + offset === originalIndex) {
+            order[originalIndex] = order[i];
+            order[i] = questionId;
+            break;
+        }
+    }
+    return order;
+}
+
+/**
+ * Add click-listener to a quiz by module id.
+ * @param {number} courseModuleId
+ */
+function listenAddToQuiz(courseModuleId) {
+    const addSelectedQuestionsButton = document.querySelector(selectors.edit.addSelectedQuestions);
+    addSelectedQuestionsButton.addEventListener('click', function() {
+        let questionIds = '';
+        for (const checkbox of document.querySelectorAll(selectors.edit.questionCheckedCheckbox)) {
+            questionIds += checkbox.getAttribute('name').slice(1) + ',';
+        }
         $.post('edit.php', {
             id: courseModuleId,
-            action: 'order',
-            order: JSON.stringify(order)
-        }, () => location.reload()); // TODO: Correct locally instead, but for now just refresh.
-    }
+            action: 'addquestion',
+            questionids: questionIds,
+        }, () => location.reload());
+    });
+}
 
-    /**
-     * @returns {Array} The current question order.
-     */
-    function getQuestionOrder() {
-        let order = [];
-        $('.questionlist li').each(function() {
-            order.push($(this).data('question-id'));
-        });
-        return order;
-    }
-
-    /**
-     * Move a question up or down by a specified offset.
-     * @param {number} questionId
-     * @param {number} offset Negative to move down, positive to move up
-     * @returns {Array}
-     */
-    function offsetQuestion(questionId, offset) {
-        let order = getQuestionOrder();
-        let originalIndex = order.indexOf(questionId);
-        if (originalIndex === -1) {
-            return order;
-        }
-        for (let i = 0; i < order.length; i++) {
-            if (i + offset === originalIndex) {
-                order[originalIndex] = order[i];
-                order[i] = questionId;
-                break;
-            }
-        }
-        return order;
-    }
-
-    /**
-     * Add click-listener to a quiz by module id.
-     * @param {number} courseModuleId
-     */
-    function listenAddToQuiz(courseModuleId) {
-        $('.jazzquiz-add-selected-questions').on('click', function() {
-            const $checkboxes = $('#categoryquestions td input[type=checkbox]:checked');
-            let questionIds = '';
-            for (const checkbox of $checkboxes) {
-                questionIds += checkbox.getAttribute('name').slice(1) + ',';
-            }
-            $.post('edit.php', {
-                id: courseModuleId,
-                action: 'addquestion',
-                questionids: questionIds,
-            }, () => location.reload());
-        });
-    }
-
-    return {
-        initialize: courseModuleId => {
-            $('.edit-question-action').on('click', function() {
-                const action = $(this).data('action');
-                const questionId = $(this).data('question-id');
-                let order = [];
-                switch (action) {
-                    case 'up': {
-                        order = offsetQuestion(questionId, 1);
-                        break;
+/**
+ * Initialize edit page.
+ * @param {Number} courseModuleId
+ */
+export function initialize(courseModuleId) {
+    document.addEventListener('click', event => {
+        const editQuestionAction = event.target.closest(selectors.edit.editQuestionAction);
+        if (editQuestionAction) {
+            let order = [];
+            switch (editQuestionAction.dataset.action) {
+                case 'up':
+                    order = offsetQuestion(editQuestionAction.dataset.questionId, 1);
+                    break;
+                case 'down':
+                    order = offsetQuestion(editQuestionAction.dataset.questionId, -1);
+                    break;
+                case 'delete': {
+                    order = getQuestionOrder();
+                    const index = order.indexOf(editQuestionAction.dataset.questionId);
+                    if (index !== -1) {
+                        order.splice(index, 1);
                     }
-                    case 'down': {
-                        order = offsetQuestion(questionId, -1);
-                        break;
-                    }
-                    case 'delete': {
-                        order = getQuestionOrder();
-                        const index = order.indexOf(questionId);
-                        if (index !== -1) {
-                            order.splice(index, 1);
-                        }
-                        break;
-                    }
-                    default: {
-                        return;
-                    }
+                    break;
                 }
-                submitQuestionOrder(order, courseModuleId);
-            });
-            let questionList = document.getElementsByClassName('questionlist')[0];
-            if (typeof Sortable !== 'undefined') {
-                // eslint-disable-next-line no-undef
-                Sortable.create(questionList, {
-                    handle: '.dragquestion',
-                    onSort: () => submitQuestionOrder(getQuestionOrder(), courseModuleId)
-                });
+                default:
+                    return;
             }
-            listenAddToQuiz(courseModuleId);
+            submitQuestionOrder(order, courseModuleId);
         }
-    };
-
-});
+    });
+    let questionList = document.getElementsByClassName('questionlist')[0];
+    if (typeof Sortable !== 'undefined') {
+        // eslint-disable-next-line no-undef
+        Sortable.create(questionList, {
+            handle: '.dragquestion',
+            onSort: () => submitQuestionOrder(getQuestionOrder(), courseModuleId)
+        });
+    }
+    listenAddToQuiz(courseModuleId);
+}
