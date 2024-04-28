@@ -37,7 +37,7 @@
         <div id="jazzquiz_controls">
             <div class="quiz-list-buttons quiz-control-buttons hidden">
                 {{#buttons}}
-                <button id="jazzquiz_control_{{id}}" class="btn">
+                <button id="jazzquiz_control_{{id}}" class="btn {{classes}}">
                     <i class="fa fa-{{icon}}"></i> {{text}}
                 </button>
                 {{/buttons}}
@@ -46,11 +46,11 @@
             <div id="jazzquiz_improvise_menu" class="start-question-menu"></div>
             <div id="jazzquiz_jump_menu" class="start-question-menu"></div>
             <div class="quiz-list-buttons">
-                <button id="jazzquiz_control_startquiz" class="btn">
+                <button id="jazzquiz_control_startquiz" class="btn btn-primary">
                     <i class="fa fa-start"></i> {{#str}}startquiz, jazzquiz{{/str}}
                 </button>
                 <h4 class="inline"></h4>
-                <button id="jazzquiz_control_exit" class="btn">
+                <button id="jazzquiz_control_exit" class="btn btn-secondary">
                     <i class="fa fa-close"></i> {{#str}}exit, jazzquiz{{/str}}
                 </button>
             </div>

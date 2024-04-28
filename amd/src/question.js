@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+import $ from 'jquery';
 import {Quiz, Ajax, setText} from 'mod_jazzquiz/core';
 import selectors from 'mod_jazzquiz/selectors';
 
@@ -41,15 +42,15 @@ export class Question {
     }
 
     static get box() {
-        return document.querySelector(selectors.question.box);
+        return $(selectors.question.box);
     }
 
     static get timer() {
-        return document.querySelector(selectors.question.timer);
+        return $(selectors.question.timer);
     }
 
     static get form() {
-        return document.querySelector(selectors.question.form);
+        return $(selectors.question.form);
     }
 
     /**

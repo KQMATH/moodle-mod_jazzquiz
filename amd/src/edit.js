@@ -42,7 +42,7 @@ function submitQuestionOrder(order, courseModuleId) {
  */
 function getQuestionOrder() {
     const questions = document.querySelectorAll('.questionlist li');
-    return questions.map(question => question.dataset.questionId);
+    return [...questions].map(question => question.dataset.questionId);
 }
 
 /**

@@ -22,13 +22,9 @@
  */
 
 import $ from 'jquery';
-import Jazz from 'mod_jazzquiz/core';
+import {Quiz, Ajax, setText} from 'mod_jazzquiz/core';
 import selectors from 'mod_jazzquiz/selectors';
-
-const Quiz = Jazz.Quiz;
-const Question = Jazz.Question;
-const Ajax = Jazz.Ajax;
-const setText = Jazz.setText;
+import {Question} from 'mod_jazzquiz/question';
 
 class ResponseView {
 
@@ -779,7 +775,7 @@ class Instructor {
                 if (!questions.hasOwnProperty(i)) {
                     continue;
                 }
-                let $questionButton = $('<button class="btn"></button>');
+                let $questionButton = $('<button class="btn btn-secondary"></button>');
                 Quiz.addMathjaxElement($questionButton, questions[i].name);
                 $questionButton.data({
                     'time': questions[i].time,

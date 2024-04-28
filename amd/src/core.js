@@ -22,10 +22,10 @@
  */
 
 import $ from 'jquery';
-import mString from 'core/str';
-import mEvent from 'core_filters/events';
+import {get_string} from 'core/str';
+import {notifyFilterContentUpdated} from 'core_filters/events';
 import selectors from 'mod_jazzquiz/selectors';
-import Question from "mod_jazzquiz/question";
+import {Question} from 'mod_jazzquiz/question';
 
 // Contains the needed values for using the ajax script.
 let session = {
@@ -40,7 +40,7 @@ let session = {
 let cache = [];
 
 // TODO: Migrate to core/ajax module?
-class Ajax {
+export class Ajax {
 
     /**
      * Send a request using AJAX, with method specified.
@@ -91,7 +91,7 @@ class Ajax {
 
 }
 
-class Quiz {
+export class Quiz {
 
     constructor(Role) {
         this.state = '';
@@ -130,23 +130,23 @@ class Quiz {
     }
 
     static get main() {
-        return document.querySelector(selectors.main);
+        return $(selectors.main);
     }
 
     static get info() {
-        return document.querySelector(selectors.quiz.info);
+        return $(selectors.quiz.info);
     }
 
     static get responded() {
-        return document.querySelector(selectors.quiz.responded);
+        return $(selectors.quiz.responded);
     }
 
     static get responses() {
-        return document.querySelector(selectors.quiz.responses);
+        return $(selectors.quiz.responses);
     }
 
     static get responseInfo() {
-        return document.querySelector(selectors.quiz.responseInfo);
+        return $(selectors.quiz.responseInfo);
     }
 
     static hide($element) {
@@ -169,7 +169,7 @@ class Quiz {
      * Triggers a dynamic content update event, which MathJax listens to.
      */
     static renderAllMathjax() {
-        mEvent.notifyFilterContentUpdated(document.getElementsByClassName('jazzquiz-response-container'));
+        notifyFilterContentUpdated(document.getElementsByClassName('jazzquiz-response-container'));
     }
 
     /**
@@ -215,8 +215,7 @@ class Quiz {
 export function setText($element, key, from, args) {
     from = (from !== undefined) ? from : 'jazzquiz';
     args = (args !== undefined) ? args : [];
-    $.when(mString.get_string(key, from, args))
-        .done(text => Quiz.show($element.html(text)));
+    $.when(get_string(key, from, args)).done(text => Quiz.show($element.html(text)));
 }
 
 /**

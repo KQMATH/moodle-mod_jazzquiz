@@ -22,12 +22,8 @@
  */
 
 import $ from 'jquery';
-import Jazz from 'mod_jazzquiz/core';
-
-const Quiz = Jazz.Quiz;
-const Question = Jazz.Question;
-const Ajax = Jazz.Ajax;
-const setText = Jazz.setText;
+import {Quiz, Ajax, setText} from 'mod_jazzquiz/core';
+import {Question} from 'mod_jazzquiz/question';
 
 class Student {
 

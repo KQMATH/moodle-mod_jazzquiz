@@ -130,23 +130,24 @@ class renderer extends \plugin_renderer_base {
                     'icon' => $button[0],
                     'id' => $button[1],
                     'text' => get_string($button[1], 'jazzquiz'),
+                    'classes' => $button[2],
                 ];
             }
             return $result;
         };
         echo $this->render_from_template('jazzquiz/quiz', [
             'buttons' => $buttons([
-                ['repeat', 'repoll'],
-                ['bar-chart', 'vote'],
-                ['edit', 'improvise'],
-                ['bars', 'jump'],
-                ['forward', 'next'],
-                ['random', 'random'],
-                ['close', 'end'],
-                ['expand', 'fullscreen'],
-                ['window-close', 'quit'],
-                ['square-o', 'responses'],
-                ['square-o', 'answer'],
+                ['repeat', 'repoll', 'btn-secondary'],
+                ['bar-chart', 'vote', 'btn-secondary'],
+                ['edit', 'improvise', 'btn-primary'],
+                ['bars', 'jump', 'btn-primary'],
+                ['forward', 'next', 'btn-secondary'],
+                ['random', 'random', 'btn-secondary'],
+                ['close', 'end', 'btn-secondary'],
+                ['expand', 'fullscreen', 'btn-secondary'],
+                ['window-close', 'quit', 'btn-secondary'],
+                ['square-o', 'responses', 'btn-secondary'],
+                ['square-o', 'answer', 'btn-secondary'],
             ]),
             'instructor' => $session->jazzquiz->is_instructor(),
         ]);
