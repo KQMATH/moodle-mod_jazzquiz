@@ -129,7 +129,7 @@ class exporter {
         $qattempt = $attempt->quba->get_question_attempt($slot);
         $question = $qattempt->get_question();
         $session->load_attempts();
-        $responses = $session->get_question_results_list($slot);
+        $responses = $session->get_question_results_list($slot, false);
         $responses = $responses['responses'];
         $name = 'session_ ' . $session->data->id . '_' . $session->data->name . '_' . $question->name;
         return [$name, $question->questiontext, $responses];

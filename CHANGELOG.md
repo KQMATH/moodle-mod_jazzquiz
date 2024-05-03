@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
+## [1.3.2] - 2024-05-03
+- Prevent XSS through responses in question types such as shortanswer
+
+## [1.3.1] - 2024-05-03
+- Fix problem adding questions to quiz after interacting with question bank form
+
+## [1.3.0] - 2024-04-28
+- Support Moodle 4.3 (question bank changes)
+- Remove some custom styling in favor of theme style
 
 ## [1.2.1] - 2023-08-21
 

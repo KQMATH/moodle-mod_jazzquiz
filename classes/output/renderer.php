@@ -290,7 +290,7 @@ class renderer extends \plugin_renderer_base {
         foreach ($attempt->quba->get_slots() as $qubaslot) {
             $qattempt = $attempt->quba->get_question_attempt($qubaslot);
             $question = $qattempt->get_question();
-            $results = $session->get_question_results_list($qubaslot);
+            $results = $session->get_question_results_list($qubaslot, true);
             list($results['responses'], $mergecount) = $session->get_merged_responses($qubaslot, $results['responses']);
             $slots[] = [
                 'num' => $qubaslot,

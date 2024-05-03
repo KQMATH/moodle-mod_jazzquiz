@@ -367,7 +367,7 @@ function get_results(jazzquiz_session $session): array {
     $session->load_attempts();
     $slot = count($session->questions);
     $qtype = $session->get_question_type_by_slot($slot);
-    $results = $session->get_question_results_list($slot);
+    $results = $session->get_question_results_list($slot, true);
     list($results['responses'], $mergecount) = $session->get_merged_responses($slot, $results['responses']);
 
     // Check if this has been voted on before.

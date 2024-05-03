@@ -27,9 +27,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2024032201; // The current module version (Date: YYYYMMDDXX).
+$plugin->version = 2024032202; // The current module version (Date: YYYYMMDDXX).
 $plugin->requires = 2023100900; // Moodle 4.3 (or above).
 $plugin->cron = 0; // Period in seconds for cron to run.
 $plugin->component = 'mod_jazzquiz';
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = '1.3.1 (Build: 2024032201)';
+$plugin->release = '1.3.2 (Build: 2024032202)';

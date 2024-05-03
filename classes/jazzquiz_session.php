@@ -468,9 +468,10 @@ class jazzquiz_session {
      * Gets the results of the current question as an array.
      *
      * @param int $slot
+     * @param bool $sanitized
      * @return array
      */
-    public function get_question_results_list(int $slot): array {
+    public function get_question_results_list(int $slot, bool $sanitized): array {
         $responses = [];
         $responded = 0;
         foreach ($this->attempts as $attempt) {
@@ -478,6 +479,9 @@ class jazzquiz_session {
                 continue;
             }
             $attemptresponses = $attempt->get_response_data($slot);
+            if ($sanitized) {
+                $attemptresponses = array_map(fn($attemptresponse) => s($attemptresponse), $attemptresponses);
+            }
             $responses = array_merge($responses, $attemptresponses);
             $responded++;
         }
