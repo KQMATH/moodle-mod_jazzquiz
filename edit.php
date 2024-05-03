@@ -89,7 +89,7 @@ function jazzquiz_edit_add_question(jazzquiz $jazzquiz, moodle_url $url): void {
     $questionids = required_param('questionids', PARAM_TEXT);
     $questionids = explode(',', $questionids);
     foreach ($questionids as $questionid) {
-        $jazzquiz->add_question($questionid);
+        $jazzquiz->add_question((int)$questionid);
     }
     // Ensure there is no action or questionid in the base url.
     $url->remove_params('action', 'questionids');

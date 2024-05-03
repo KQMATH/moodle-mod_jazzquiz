@@ -72,17 +72,20 @@ function offsetQuestion(questionId, offset) {
  * @param {number} courseModuleId
  */
 function listenAddToQuiz(courseModuleId) {
-    const addSelectedQuestionsButton = document.querySelector(selectors.edit.addSelectedQuestions);
-    addSelectedQuestionsButton.addEventListener('click', function() {
-        let questionIds = '';
-        for (const checkbox of document.querySelectorAll(selectors.edit.questionCheckedCheckbox)) {
-            questionIds += checkbox.getAttribute('name').slice(1) + ',';
+    document.addEventListener('click', event => {
+        const addSelectedQuestionsButton = event.target.closest(selectors.edit.addSelectedQuestions);
+        if (addSelectedQuestionsButton) {
+            event.preventDefault();
+            let questionIds = '';
+            for (const checkbox of document.querySelectorAll(selectors.edit.questionCheckedCheckbox)) {
+                questionIds += checkbox.getAttribute('name').slice(1) + ',';
+            }
+            $.post('edit.php', {
+                id: courseModuleId,
+                action: 'addquestion',
+                questionids: questionIds,
+            }, () => location.reload());
         }
-        $.post('edit.php', {
-            id: courseModuleId,
-            action: 'addquestion',
-            questionids: questionIds,
-        }, () => location.reload());
     });
 }
 
