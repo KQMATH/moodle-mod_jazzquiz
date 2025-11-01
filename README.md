@@ -1,7 +1,6 @@
 # JazzQuiz
 
-![Build Status](https://github.com/KQMATH/moodle-mod_jazzquiz/workflows/build/badge.svg?branch=master)
-[![Coverage Status](https://coveralls.io/repos/github/KQMATH/moodle-mod_jazzquiz/badge.svg?branch=master)](https://coveralls.io/github/KQMATH/moodle-mod_jazzquiz?branch=master)
+[![Moodle plugin CI](https://github.com/KQMATH/moodle-mod_jazzquiz/actions/workflows/moodle-ci.yml/badge.svg)](https://github.com/KQMATH/moodle-mod_jazzquiz/actions)
 
 Moodle activity module, letting the teacher run a preplanned quiz with the power of improvisation
 
@@ -20,17 +19,14 @@ The teacher can, at a later date, go back through the results and, for each ques
 The repolls are treated as separate questions, and you will get a correct order in the review page.
 
 ## Documentation
-
-
 Documentation is available as
 [github pages](https://kqmath.github.io/) at
 [https://kqmath.github.io/docs/jazzquiz/](https://kqmath.github.io/docs/jazzquiz/)
 
 ## Feedback:
-
 **Project lead:** Hans Georg Schaathun: <hasc@ntnu.no>
 
-**Developer:** Sebastian S. Gundersen: <sebastsg@stud.ntnu.no>
+**Maintainer:** Sebastian Gundersen: <sebastian@sgundersen.com>
 
 ## See also
 
