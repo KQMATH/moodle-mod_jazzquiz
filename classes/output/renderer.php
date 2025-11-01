@@ -41,7 +41,6 @@ require_once($CFG->libdir . '/questionlib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class renderer extends \plugin_renderer_base {
-
     /**
      * Render the header for the page.
      *
@@ -120,11 +119,12 @@ class renderer extends \plugin_renderer_base {
      * Renders the quiz to the page.
      *
      * @param jazzquiz_session $session
+     * @param jazzquiz $jazzquiz
      */
-    public function render_quiz(jazzquiz_session $session): void {
-        $this->require_quiz($session);
+    public function render_quiz(jazzquiz_session $session, jazzquiz $jazzquiz): void {
+        $this->require_quiz($session, $jazzquiz);
         echo $this->render_from_template('jazzquiz/quiz', [
-            'instructor' => $session->jazzquiz->is_instructor(),
+            'instructor' => $jazzquiz->is_instructor(),
         ]);
     }
 
@@ -138,8 +138,13 @@ class renderer extends \plugin_renderer_base {
      * @param string|stdClass $reviewoptions Review options as either string or object
      * @return string the HTML fragment for the question
      */
-    public function render_question(jazzquiz $jazzquiz, question_usage_by_activity $quba, int $slot, bool $review,
-                                    string|stdClass $reviewoptions): string {
+    public function render_question(
+        jazzquiz $jazzquiz,
+        question_usage_by_activity $quba,
+        int $slot,
+        bool $review,
+        string|stdClass $reviewoptions,
+    ): string {
         $displayoptions = $jazzquiz->get_display_options($review, $reviewoptions);
         $quba->render_question_head_html($slot);
         return $quba->render_question($slot, $displayoptions, $slot);
@@ -274,18 +279,18 @@ class renderer extends \plugin_renderer_base {
             ];
         }
 
-        // TODO: Slots should not be passed as parameter to AMD module.
+        // Must be fixed: Slots should not be passed as parameter to AMD module.
         // It quickly gets over 1KB, which shows debug warning.
         $this->require_review($session, $jazzquiz, $slots);
 
         $attendances = $session->get_attendances();
         $sessions = $jazzquiz->get_sessions();
         return [
-            'select_session' => $jazzquiz->renderer->get_select_session_context($url, $sessions, $session->id),
+            'select_session' => $this->get_select_session_context($url, $sessions, $session->id),
             'session' => [
                 'slots' => $slots,
                 'students' => $attendances,
-                'count_total' => count($session->attempts) - 1, // TODO: For loop and check if preview instead?
+                'count_total' => count($session->attempts) - 1, // Maybe better to loop and check if preview instead?
                 'count_answered' => count($attendances),
                 'cmid' => $jazzquiz->cm->id,
                 'quizid' => $jazzquiz->data->id,
@@ -313,6 +318,7 @@ class renderer extends \plugin_renderer_base {
      * Require the quiz javascript based on the current user's role.
      *
      * @param jazzquiz_session $session
+     * @param jazzquiz $jazzquiz
      */
     public function require_quiz(jazzquiz_session $session, jazzquiz $jazzquiz): void {
         $this->require_core($session, $jazzquiz);
@@ -340,6 +346,7 @@ class renderer extends \plugin_renderer_base {
      * Require the review javascript for the instructor.
      *
      * @param jazzquiz_session $session
+     * @param jazzquiz $jazzquiz
      * @param array $slots
      */
     public function require_review(jazzquiz_session $session, jazzquiz $jazzquiz, array $slots): void {
@@ -347,5 +354,4 @@ class renderer extends \plugin_renderer_base {
         $count = count($jazzquiz->questions);
         $this->page->requires->js_call_amd('mod_jazzquiz/instructor', 'initialize', [$count, true, $slots]);
     }
-
 }

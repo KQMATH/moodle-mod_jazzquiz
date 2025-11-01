@@ -33,9 +33,13 @@ require_once($CFG->libdir . '/externallib.php');
 
 /**
  * Get possible vote options, given that the session is currently running a vote.
+ *
+ * @package   mod_jazzquiz
+ * @author    Sebastian S. Gundersen <sebastian@sgundersen.com>
+ * @copyright 2024 NTNU
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class get_vote_options extends external_api {
-
     /**
      * Get the function parameters.
      *
@@ -94,5 +98,4 @@ class get_vote_options extends external_api {
             'html' => new external_value(PARAM_TEXT, 'HTML for vote options', VALUE_REQUIRED),
         ]);
     }
-
 }

@@ -29,7 +29,6 @@ use stdClass;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class improviser {
-
     /** @var jazzquiz */
     private jazzquiz $jazzquiz;
 
@@ -335,7 +334,7 @@ class improviser {
         }
         $question->id = $DB->insert_record('question', $question);
         $qbankentry->id = $DB->insert_record('question_bank_entries', $qbankentry);
-        $this->insert_question_version( $qbankentry->id, $question->id );
+        $this->insert_question_version($qbankentry->id, $question->id);
         // Add options. Important: If shortmath changes options table in the future, this must be changed too.
         $options = $this->make_shortanswer_options($question->id);
         $DB->insert_record('qtype_shortmath_options', $options);
@@ -356,11 +355,10 @@ class improviser {
         $this->insert_multichoice_question_definition("4 $multichoice", ['A', 'B', 'C', 'D']);
         $this->insert_multichoice_question_definition("5 $multichoice", ['A', 'B', 'C', 'D', 'E']);
         $this->insert_shortanswer_question_definition(get_string('short_answer', 'jazzquiz'));
-        // TODO: Remove the check in the future, 2020+. Avoid messing with as many existing instances as possible.
+        // Remove this check in the future, 2020+. Avoid messing with as many existing instances as possible.
         if ($this->get_improvised_question_definition('True / False') === null) {
             $this->insert_multichoice_question_definition("$yes / $no", [$yes, $no]);
         }
         $this->insert_shortmath_question_definition(get_string('short_math_answer', 'jazzquiz'));
     }
-
 }

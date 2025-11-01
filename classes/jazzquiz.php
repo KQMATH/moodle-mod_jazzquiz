@@ -33,7 +33,6 @@ use stdClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class jazzquiz {
-
     /** @var array $review fields Static review fields to add as options */
     public static array $reviewfields = [
         'attempt' => ['theattempt', 'jazzquiz'],
@@ -72,7 +71,7 @@ class jazzquiz {
         global $PAGE, $DB;
         $this->cm = get_coursemodule_from_id('jazzquiz', $cmid, 0, false, MUST_EXIST);
 
-        // TODO: Login requirement must be moved over to caller.
+        // Login requirement must be moved over to caller.
         require_login($this->cm->course, false, $this->cm);
 
         $this->context = context_module::instance($cmid);
@@ -343,5 +342,4 @@ class jazzquiz {
         $conditions = array_merge(['jazzquizid' => $this->data->id], $conditions);
         return $DB->get_records('jazzquiz_sessions', $conditions);
     }
-
 }

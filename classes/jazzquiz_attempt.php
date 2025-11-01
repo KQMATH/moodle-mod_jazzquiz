@@ -16,8 +16,6 @@
 
 namespace mod_jazzquiz;
 
-use context_module;
-use core\context\module;
 use question_bank;
 use question_engine;
 use question_usage_by_activity;
@@ -33,7 +31,6 @@ use stdClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class jazzquiz_attempt {
-
     /** The attempt has not started. */
     const NOTSTARTED = 0;
 
@@ -183,9 +180,10 @@ class jazzquiz_attempt {
      */
     public static function create(jazzquiz_session $session): jazzquiz_attempt {
         global $DB, $USER;
-        $quba = question_engine::make_questions_usage_by_activity('mod_jazzquiz', $session->jazzquiz->context);
+        $jazzquiz = $DB->get_record('jazzquiz', ['id' => $session->jazzquizid], strictness: MUST_EXIST);
+        $quba = question_engine::make_questions_usage_by_activity('mod_jazzquiz', $jazzquiz->context);
         $quba->set_preferred_behaviour('immediatefeedback');
-        // TODO: Don't suppress the error if it becomes possible to save QUBAs without slots.
+        // Don't suppress the error if it becomes possible to save QUBAs without slots.
         @question_engine::save_questions_usage_by_activity($quba);
         $id = $DB->insert_record('jazzquiz_attempts', [
             'sessionid' => $session->id,
@@ -315,7 +313,7 @@ class jazzquiz_attempt {
         $qtype = $questionattempt->get_question()->get_type_name();
         switch ($qtype) {
             case 'stack':
-                // TODO: Figure out a better way to get rid of the input name.
+                // Figure out a better way to get rid of the input name.
                 $response = str_replace('ans1: ', '', $response);
                 $response = str_replace(' [valid]', '', $response);
                 $response = str_replace(' [score]', '', $response);
@@ -353,5 +351,4 @@ class jazzquiz_attempt {
         }
         return $count;
     }
-
 }

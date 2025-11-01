@@ -28,7 +28,6 @@ namespace mod_jazzquiz;
 
 use core_question\local\bank\question_edit_contexts;
 use mod_jazzquiz\bank\add_questions_bank_view;
-use moodle_url;
 
 require_once('../../config.php');
 require_once($CFG->dirroot . '/mod/jazzquiz/lib.php');
@@ -57,10 +56,10 @@ function jazzquiz_session_open(int $jazzquizid): bool {
  *
  * @param question_edit_contexts $contexts
  * @param jazzquiz $jazzquiz
- * @param moodle_url $url
+ * @param \core\url $url
  * @param array $pagevars
  */
-function list_questions(question_edit_contexts $contexts, jazzquiz $jazzquiz, moodle_url $url, array $pagevars): void {
+function list_questions(question_edit_contexts $contexts, jazzquiz $jazzquiz, \core\url $url, array $pagevars): void {
     ob_start();
     $questionbank = new add_questions_bank_view($contexts, $url, $jazzquiz->course, $jazzquiz->cm, $pagevars);
     $questionbank->display();
@@ -83,9 +82,9 @@ function jazzquiz_edit_order(jazzquiz $jazzquiz): void {
  * Add a question to the quiz.
  *
  * @param jazzquiz $jazzquiz
- * @param moodle_url $url
+ * @param \core\url $url
  */
-function jazzquiz_edit_add_question(jazzquiz $jazzquiz, moodle_url $url): void {
+function jazzquiz_edit_add_question(jazzquiz $jazzquiz, \core\url $url): void {
     $questionids = required_param('questionids', PARAM_TEXT);
     $questionids = explode(',', $questionids);
     foreach ($questionids as $questionid) {
@@ -111,10 +110,10 @@ function jazzquiz_edit_edit_question(jazzquiz $jazzquiz): void {
  *
  * @param jazzquiz $jazzquiz
  * @param question_edit_contexts $contexts
- * @param moodle_url $url
+ * @param \core\url $url
  * @param array $pagevars
  */
-function jazzquiz_edit_qlist(jazzquiz $jazzquiz, question_edit_contexts $contexts, moodle_url $url, array $pagevars): void {
+function jazzquiz_edit_qlist(jazzquiz $jazzquiz, question_edit_contexts $contexts, \core\url $url, array $pagevars): void {
     $jazzquiz->renderer->header($jazzquiz, 'edit');
     list_questions($contexts, $jazzquiz, $url, $pagevars);
     $jazzquiz->renderer->footer();
@@ -135,13 +134,14 @@ function jazzquiz_edit(): void {
         $_POST['cmid'] = $_POST['id'];
     }
 
-    list(
+    [
         $url,
         $contexts,
         $cmid,
         $cm,
         $module, // JazzQuiz database record.
-        $pagevars) = question_edit_setup('editq', '/mod/jazzquiz/edit.php', true);
+        $pagevars,
+    ] = question_edit_setup('editq', '/mod/jazzquiz/edit.php', true);
 
     $jazzquiz = new jazzquiz($cmid);
     $renderer = $jazzquiz->renderer;

@@ -21,12 +21,12 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+import Ajax from 'core/ajax';
 import {Quiz, setText} from 'mod_jazzquiz/core';
 import selectors from 'mod_jazzquiz/selectors';
 import {addMathjaxElement, renderMaximaEquation} from 'mod_jazzquiz/math_rendering';
 
 class Student {
-
     /**
      * @param {Quiz} quiz
      */
@@ -164,6 +164,6 @@ class Student {
  * Initialize student session.
  */
 export function initialize() {
-    let quiz = new Quiz(Student);
+    const quiz = new Quiz(Student);
     quiz.poll(2000);
 }

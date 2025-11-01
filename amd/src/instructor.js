@@ -21,14 +21,13 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import $ from 'jquery';
+import Ajax from 'core/ajax';
 import {Quiz, setText} from 'mod_jazzquiz/core';
 import {Question} from 'mod_jazzquiz/question';
 import selectors from 'mod_jazzquiz/selectors';
 import {addMathjaxElement, renderMaximaEquation, renderAllMathjax} from 'mod_jazzquiz/math_rendering';
 
 class ResponseView {
-
     /**
      * @param {Quiz} quiz
      */
@@ -77,7 +76,13 @@ class ResponseView {
      * Hides the responses
      */
     hide() {
-        Instructor.control('responses').querySelector('.fa').classList.replace('fa-check-square-o', 'fa-square-o');
+        const responsesControl = document.getElementById(`jazzquiz_control_responses`);
+        if (responsesControl instanceof HTMLElement) {
+            const icon = responsesControl.querySelector('.fa');
+            if (icon instanceof HTMLElement) {
+                icon.classList.replace('fa-check-square-o', 'fa-square-o');
+            }
+        }
         document.querySelector(selectors.quiz.responses).classList.add('hidden');
         document.querySelector(selectors.quiz.responseInfo).classList.add('hidden');
     }
@@ -86,7 +91,13 @@ class ResponseView {
      * Shows the responses
      */
     show() {
-        Instructor.control('responses').querySelector('.fa').classList.replace('fa-square-o', 'fa-check-square-o');
+        const responsesControl = document.getElementById(`jazzquiz_control_responses`);
+        if (responsesControl instanceof HTMLElement) {
+            const icon = responsesControl.querySelector('.fa');
+            if (icon instanceof HTMLElement) {
+                icon.classList.replace('fa-square-o', 'fa-check-square-o');
+            }
+        }
         document.querySelector(selectors.quiz.responses).classList.remove('hidden');
         document.querySelector(selectors.quiz.responseInfo).classList.remove('hidden');
         if (this.showVotesUponReview) {
@@ -569,18 +580,19 @@ class Instructor {
                     if (event.key.toLowerCase() !== key) {
                         return;
                     }
-                    let focusedTag = $(':focus').prop('tagName');
-                    if (focusedTag !== undefined) {
-                        focusedTag = focusedTag.toLowerCase();
-                        if (focusedTag === 'input' || focusedTag === 'textarea') {
-                            return;
-                        }
+                    const focusedElement = document.querySelector(':focus');
+                    if (!(focusedElement instanceof HTMLElement)) {
+                        return;
+                    }
+                    const focusedTag = focusedElement.tagName.toLowerCase();
+                    if (focusedTag === 'input' || focusedTag === 'textarea') {
+                        return;
                     }
                     event.preventDefault();
                     keys[key].repeat = true;
-                    let $control = Instructor.control(keys[key].action);
-                    if ($control.length && !$control.prop('disabled')) {
-                        $control.click();
+                    const control = document.getElementById(`jazzquiz_control_${keys[key].action}`);
+                    if (control && !control.disabled) {
+                        control.click();
                     }
                 });
 
@@ -603,28 +615,12 @@ class Instructor {
         });
     }
 
-    static get controls() {
-        return document.querySelector(selectors.quiz.controlsBox);
-    }
-
-    static get controlButtons() {
-        return document.querySelector(selectors.quiz.controlButtons);
-    }
-
     static control(key) {
         return document.getElementById(`jazzquiz_control_${key}`);
     }
 
     static get side() {
         return document.querySelector(selectors.quiz.sideContainer);
-    }
-
-    static get correctAnswer() {
-        return document.querySelector(selectors.quiz.correctAnswerContainer);
-    }
-
-    static get isMerging() {
-        return $('.merge-from').length !== 0;
     }
 
     onNotRunning(data) {
@@ -641,8 +637,10 @@ class Instructor {
         } else {
             setText(studentsJoined, 'no_students_have_joined');
         }
-        const startQuizButton = Instructor.control('startquiz');
-        startQuizButton.parentElement.classList.remove('hidden');
+        const startQuizButton = document.getElementById(`jazzquiz_control_startquiz`);
+        if (startQuizButton) {
+            startQuizButton.parentElement.classList.remove('hidden');
+        }
     }
 
     onPreparing(data) {
@@ -669,7 +667,8 @@ class Instructor {
                 this.endQuestion();
             }
             // Only rebuild results if we are not merging.
-            this.responses.refresh(!Instructor.isMerging);
+            const mergeFrom = document.querySelector('.merge-from');
+            this.responses.refresh(mergeFrom === null);
         } else {
             const started = this.quiz.question.startCountdown(data.questiontime, data.delay);
             if (started) {
@@ -705,7 +704,10 @@ class Instructor {
 
     onSessionClosed() {
         Instructor.side.classList.add('hidden');
-        Instructor.correctAnswer.classList.add('hidden');
+        const correctAnswer = document.querySelector(selectors.quiz.correctAnswerContainer);
+        if (correctAnswer) {
+            correctAnswer.classList.add('hidden');
+        }
         Instructor.enableControls([]);
         this.responses.clear();
         this.quiz.question.isRunning = false;
@@ -721,13 +723,14 @@ class Instructor {
     }
 
     onStateChange() {
-        //$('#region-main').find('ul.nav.nav-tabs').css('display', 'none');
-        //$('#region-main-settings-menu').css('display', 'none');
-        //$('.region_main_settings_menu_proxy').css('display', 'none');
-
-        Instructor.controlButtons.classList.remove('hidden');
-        Instructor.control('startquiz').parentElement.classList.add('hidden');
-
+        const controlButtons = document.querySelector(selectors.quiz.controlButtons);
+        if (controlButtons instanceof HTMLElement) {
+            controlButtons.classList.remove('hidden');
+        }
+        const startQuizControl = document.getElementById(`jazzquiz_control_startquiz`);
+        if (startQuizControl instanceof HTMLElement) {
+            startQuizControl.parentElement.classList.add('hidden');
+        }
     }
 
     onQuestionRefreshed(data) {
@@ -746,7 +749,10 @@ class Instructor {
      * Start the quiz. Does not start any questions.
      */
     startQuiz() {
-        Instructor.control('startquiz').parentElement.classList.add('hidden');
+        const startQuizControl = document.getElementById(`jazzquiz_control_startquiz`);
+        if (startQuizControl instanceof HTMLElement) {
+            startQuizControl.parentElement.classList.add('hidden');
+        }
         Ajax.post('start_quiz', {}, () => {
             const controls = document.querySelector(selectors.quiz.controls);
             if (controls) {
@@ -775,7 +781,10 @@ class Instructor {
      * @param {string} name
      */
     showQuestionListSetup(name) {
-        let controlButton = Instructor.control(name);
+        const controlButton = document.getElementById(`jazzquiz_control_${name}`);
+        if (!controlButton) {
+            return;
+        }
         if (controlButton.classList.contains('active')) {
             // It's already open. Let's not send another request.
             return;
@@ -887,10 +896,14 @@ class Instructor {
     closeSession() {
         document.querySelector(selectors.quiz.undoMergeButton).classList.add('hidden');
         document.querySelector(selectors.question.box).classList.add('hidden');
-        Instructor.controls.classList.add('hidden');
+        const controls = document.querySelector(selectors.quiz.controlsBox);
+        if (controls) {
+            controls.classList.add('hidden');
+        }
         setText(document.querySelector(selectors.quiz.info), 'closing_session');
-        // eslint-disable-next-line no-return-assign
-        Ajax.post('close_session', {}, () => window.location = location.href.split('&')[0]);
+        Ajax.post('close_session', {}, () => {
+            window.location = location.href.split('&')[0];
+        });
     }
 
     /**
@@ -898,8 +911,17 @@ class Instructor {
      */
     hideCorrectAnswer() {
         if (this.isShowingCorrectAnswer) {
-            Instructor.correctAnswer.classList.add('hidden');
-            Instructor.control('answer').querySelector('.fa').classList.replace('fa-check-square-o', 'fa-square-o');
+            const correctAnswer = document.querySelector(selectors.quiz.correctAnswerContainer);
+            if (correctAnswer instanceof HTMLElement) {
+                correctAnswer.classList.add('hidden');
+            }
+            const answerControl = document.getElementById(`jazzquiz_control_answer`);
+            if (answerControl instanceof HTMLElement) {
+                const icon = answerControl.querySelector('.fa');
+                if (icon instanceof HTMLElement) {
+                    icon.classList.replace('fa-check-square-o', 'fa-square-o');
+                }
+            }
             this.isShowingCorrectAnswer = false;
         }
     }
@@ -910,10 +932,19 @@ class Instructor {
     showCorrectAnswer() {
         this.hideCorrectAnswer();
         Ajax.get('get_right_response', {}, data => {
-            Instructor.correctAnswer.innerHTML = data.right_answer;
-            Instructor.correctAnswer.classList.remove('hidden');
+            const correctAnswer = document.querySelector(selectors.quiz.correctAnswerContainer);
+            if (correctAnswer instanceof HTMLElement) {
+                correctAnswer.innerHTML = data.right_answer;
+                correctAnswer.classList.remove('hidden');
+            }
             renderAllMathjax();
-            Instructor.control('answer').querySelector('.fa').classList.replace('fa-square-o', 'fa-check-square-o');
+            const answerControl = document.getElementById(`jazzquiz_control_answer`);
+            if (answerControl instanceof HTMLElement) {
+                const icon = answerControl.querySelector('.fa');
+                if (icon instanceof HTMLElement) {
+                    icon.classList.replace('fa-square-o', 'fa-check-square-o');
+                }
+            }
             this.isShowingCorrectAnswer = true;
         });
     }

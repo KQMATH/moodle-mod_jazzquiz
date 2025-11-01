@@ -25,7 +25,6 @@ namespace mod_jazzquiz;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class exporter {
-
     /**
      * Escape the characters used for structuring the CSV contents.
      *
@@ -95,7 +94,7 @@ class exporter {
      * @param jazzquiz_attempt[] $attempts
      */
     public function export_session_csv(jazzquiz_session $session, array $attempts): void {
-        list($name, $slots, $users) = $this->export_session($session, $attempts);
+        [$name, $slots, $users] = $this->export_session($session, $attempts);
         $this->csv_file($name);
         // Header row.
         echo "Student\t";
@@ -143,7 +142,7 @@ class exporter {
      * @param int $slot
      */
     public function export_session_question_csv(jazzquiz_session $session, jazzquiz_attempt $attempt, int $slot): void {
-        list($name, $text, $responses) = $this->export_session_question($session, $attempt, $slot);
+        [$name, $text, $responses] = $this->export_session_question($session, $attempt, $slot);
         $this->csv_file($name);
         echo "$text\r\n";
         foreach ($responses as $response) {
@@ -176,5 +175,4 @@ class exporter {
             echo "$idnumber\t$lastname\t$firstname\t$count\r\n";
         }
     }
-
 }

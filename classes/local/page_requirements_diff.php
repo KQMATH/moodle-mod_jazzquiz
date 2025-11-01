@@ -24,8 +24,8 @@ use page_requirements_manager;
  * To load a question without refreshing the page, we need the JavaScript for the question.
  * Moodle stores this in page_requirements_manager, but there is no way to read the JS that is required.
  * This class takes in the manager and keeps the JS for when we want to get a diff.
- * NOTE: This will only ever be used by renderer::render_question_form()
- * TODO: Look into removing this class in the future.
+ *
+ * This will only ever be used by {@see renderer::render_question_form()}
  *
  * @package   mod_jazzquiz
  * @author    Sebastian S. Gundersen <sebastian@sgundersen.com>
@@ -33,7 +33,6 @@ use page_requirements_manager;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class page_requirements_diff extends page_requirements_manager {
-
     /** @var array */
     private array $beforeinitjs;
 
@@ -76,5 +75,4 @@ class page_requirements_diff extends page_requirements_manager {
     public function get_css_diff(page_requirements_manager $manager): array {
         return array_keys(array_diff($manager->cssurls, $this->beforecss));
     }
-
 }

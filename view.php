@@ -63,12 +63,12 @@ function jazzquiz_view_start_quiz(jazzquiz $jazzquiz): void {
     $session->myattempt->save();
 
     // Initialize JavaScript for the question engine.
-    // TODO: Not certain if this is needed. Should be checked further.
+    // Not certain if this is needed. Should be checked further.
     \question_engine::initialise_js();
 
     $renderer = $jazzquiz->renderer;
     $renderer->header($jazzquiz, 'view');
-    $renderer->render_quiz($session);
+    $renderer->render_quiz($session, $jazzquiz);
     $renderer->footer();
 }
 

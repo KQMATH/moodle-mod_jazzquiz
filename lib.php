@@ -114,7 +114,15 @@ function jazzquiz_extend_settings_navigation(settings_navigation $settings, navi
  * @param array $options
  * @return bool
  */
-function jazzquiz_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, $options = []): bool {
+function jazzquiz_pluginfile(
+    $course,
+    $cm,
+    $context,
+    $filearea,
+    $args,
+    $forcedownload,
+    $options = [],
+): bool {
     global $DB;
     if ($context->contextlevel != CONTEXT_MODULE) {
         return false;
@@ -164,8 +172,17 @@ function jazzquiz_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
  * @package mod_jazzquiz
  * @category files
  */
-function mod_jazzquiz_question_pluginfile($course, $context, $component, $filearea, $qubaid, $slot,
-                                          $args, $forcedownload, $options = []): void {
+function mod_jazzquiz_question_pluginfile(
+    $course,
+    $context,
+    $component,
+    $filearea,
+    $qubaid,
+    $slot,
+    $args,
+    $forcedownload,
+    $options = [],
+): void {
     $fs = get_file_storage();
     $relative = implode('/', $args);
     $full = "/$context->id/$component/$filearea/$relative";

@@ -94,6 +94,7 @@ function show_all_jump_questions(jazzquiz $jazzquiz): array {
  * Get the form for the current question.
  *
  * @param jazzquiz_session $session
+ * @param jazzquiz $jazzquiz
  * @return array
  */
 function get_question_form(jazzquiz_session $session, jazzquiz $jazzquiz): array {
@@ -110,7 +111,7 @@ function get_question_form(jazzquiz_session $session, jazzquiz $jazzquiz): array
         /** @var output\renderer $renderer */
         $renderer = $jazzquiz->renderer;
         $isinstructor = $jazzquiz->is_instructor();
-        list($html, $js, $css) = $renderer->render_question_form($slot, $session->myattempt, $jazzquiz, $isinstructor);
+        [$html, $js, $css] = $renderer->render_question_form($slot, $session->myattempt, $jazzquiz, $isinstructor);
         $isalreadysubmitted = false;
     }
     $qtype = $session->get_question_type_by_slot($slot);
@@ -129,6 +130,7 @@ function get_question_form(jazzquiz_session $session, jazzquiz $jazzquiz): array
  * Start a new question.
  *
  * @param jazzquiz_session $session
+ * @param jazzquiz $jazzquiz
  * @return array
  */
 function start_question(jazzquiz_session $session, jazzquiz $jazzquiz): array {
@@ -210,6 +212,7 @@ function start_quiz(jazzquiz_session $session): array {
  * Submit a response for the current question.
  *
  * @param jazzquiz_session $session
+ * @param jazzquiz $jazzquiz
  * @return array
  */
 function save_question(jazzquiz_session $session, jazzquiz $jazzquiz): array {
@@ -298,6 +301,7 @@ function end_question(jazzquiz_session $session): array {
  * Get the correct answer for the current question.
  *
  * @param jazzquiz_session $session
+ * @param jazzquiz $jazzquiz
  * @return array
  */
 function get_right_response(jazzquiz_session $session, jazzquiz $jazzquiz): array {
@@ -405,6 +409,7 @@ function stack_to_latex(): array {
  *
  * @param string $action
  * @param jazzquiz_session $session
+ * @param jazzquiz $jazzquiz
  * @return array
  */
 function handle_instructor_request(string $action, jazzquiz_session $session, jazzquiz $jazzquiz): array {
@@ -432,6 +437,7 @@ function handle_instructor_request(string $action, jazzquiz_session $session, ja
  *
  * @param string $action
  * @param jazzquiz_session $session
+ * @param jazzquiz $jazzquiz
  * @return array
  */
 function handle_student_request(string $action, jazzquiz_session $session, jazzquiz $jazzquiz): array {
@@ -451,7 +457,6 @@ function handle_student_request(string $action, jazzquiz_session $session, jazzq
 function jazzquiz_ajax(): array {
     $action = required_param('action', PARAM_ALPHANUMEXT);
 
-    // TODO: Better solution if more non-session actions are added.
     if ($action === 'stack') {
         return stack_to_latex();
     }

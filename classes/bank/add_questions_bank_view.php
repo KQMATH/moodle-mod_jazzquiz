@@ -14,18 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Question bank view for managing JazzQuiz questions.
- *
- * @package mod_jazzquiz
- * @copyright 2024 NTNU
- * @author Sebastian Gundersen <sebastian@sgundersen.com>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace mod_jazzquiz\bank;
-
-use context;
 
 /**
  * Displays button at the bottom of the question bank view for adding selected questions to a JazzQuiz.
@@ -36,14 +25,13 @@ use context;
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class add_questions_bank_view extends \core_question\local\bank\view {
-
     /**
      * Display button to add selected questions to the quiz.
      *
-     * @param context $catcontext
+     * @param \core\context $catcontext
      * @return void
      */
-    protected function display_bottom_controls(context $catcontext): void {
+    protected function display_bottom_controls(\core\context $catcontext): void {
         echo '<div class="pt-2">';
         if (has_capability('moodle/question:useall', $catcontext)) {
             echo '<button class="btn btn-primary jazzquiz-add-selected-questions">';
@@ -52,5 +40,4 @@ class add_questions_bank_view extends \core_question\local\bank\view {
         }
         echo '</div>';
     }
-
 }

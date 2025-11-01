@@ -26,12 +26,10 @@ require_once($CFG->dirroot . '/mod/jazzquiz/backup/moodle2/backup_jazzquiz_steps
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class backup_jazzquiz_activity_task extends backup_activity_task {
-
     /**
      * This should define settings. Not used at the moment.
      */
     protected function define_my_settings() {
-
     }
 
     /**
@@ -39,7 +37,6 @@ class backup_jazzquiz_activity_task extends backup_activity_task {
      */
     protected function define_my_steps() {
         $this->add_step(new backup_jazzquiz_activity_structure_step('jazzquiz_structure', 'jazzquiz.xml'));
-        // TODO: This might not be necessary in future Moodle versions, if discussed subclass is added.
         $this->add_step(new backup_calculate_question_categories('activity_question_categories'));
         $this->add_step(new backup_delete_temp_questions('clean_temp_questions'));
     }
@@ -60,5 +57,4 @@ class backup_jazzquiz_activity_task extends backup_activity_task {
         $content = preg_replace($search, '$@JAZZQUIZVIEWBYID*$2@$', $content);
         return $content;
     }
-
 }
