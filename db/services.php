@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Service definitions for jazzquiz.
+ *
+ * @package mod_jazzquiz
+ * @copyright 2025 NTNU
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 defined('MOODLE_INTERNAL') || die();
 
 $functions = [
@@ -23,5 +31,5 @@ $functions = [
         'type' => 'read',
         'ajax' => true,
         'services' => [MOODLE_OFFICIAL_MOBILE_SERVICE],
-    ]
+    ],
 ];

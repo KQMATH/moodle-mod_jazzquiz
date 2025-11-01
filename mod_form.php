@@ -32,7 +32,6 @@ require_once($CFG->dirroot . '/course/moodleform_mod.php');
  * Module settings form.
  */
 class mod_jazzquiz_mod_form extends moodleform_mod {
-
     /**
      * Create form definition.
      *
@@ -69,5 +68,4 @@ class mod_jazzquiz_mod_form extends moodleform_mod {
         // Add standard buttons, common to all modules.
         $this->add_action_buttons();
     }
-
 }

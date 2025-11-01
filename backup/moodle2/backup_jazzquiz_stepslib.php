@@ -22,7 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class backup_jazzquiz_activity_structure_step extends backup_questions_activity_structure_step {
-
     /**
      * Defines the structure of the backup element.
      *
@@ -163,5 +162,4 @@ class backup_jazzquiz_activity_structure_step extends backup_questions_activity_
         // Return the root element (choice), wrapped into standard activity structure.
         return $this->prepare_activity_structure($jazzquiz);
     }
-
 }

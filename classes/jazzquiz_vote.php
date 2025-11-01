@@ -27,7 +27,6 @@ use stdClass;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class jazzquiz_vote {
-
     /** @var int $sessionid */
     protected int $sessionid;
 
@@ -137,5 +136,4 @@ class jazzquiz_vote {
             $DB->insert_record('jazzquiz_votes', $vote);
         }
     }
-
 }

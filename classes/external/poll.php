@@ -32,9 +32,13 @@ require_once($CFG->libdir . '/externallib.php');
 
 /**
  * Poll session.
+ *
+ * @package   mod_jazzquiz
+ * @author    Sebastian S. Gundersen <sebastian@sgundersen.com>
+ * @copyright 2024 NTNU
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class poll extends external_api {
-
     /**
      * Get the function parameters.
      *

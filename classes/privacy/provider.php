@@ -47,10 +47,8 @@ use stdClass;
 class provider implements
     // This plugin has data.
     \core_privacy\local\metadata\provider,
-
     // This plugin currently implements the original plugin_provider interface.
     \core_privacy\local\request\plugin\provider {
-
     /**
      * Returns metadata about this system.
      *
@@ -130,7 +128,7 @@ class provider implements
     public static function export_user_data(approved_contextlist $contextlist): void {
         global $DB;
         $user = $contextlist->get_user();
-        list($contextsql, $contextparams) = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
+        [$contextsql, $contextparams] = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
         $sql = "SELECT cm.id AS cmid
                   FROM {context} cx
                   JOIN {course_modules} cm
@@ -268,5 +266,4 @@ class provider implements
         }
         \core_question\privacy\provider::delete_data_for_user($contextlist);
     }
-
 }

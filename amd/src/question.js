@@ -101,8 +101,8 @@ export class Question {
      * Start a countdown for the question which will eventually start the question attempt.
      * The question attempt might start before this function return, depending on the arguments.
      * If a countdown has already been started, this call will return true and the current countdown will continue.
-     * @param {number} questionTime
-     * @param {number} countdownTimeLeft
+     * @param {number|string} questionTime
+     * @param {number|string} countdownTimeLeft
      * @return {boolean} true if countdown is active
      */
     startCountdown(questionTime, countdownTimeLeft) {
@@ -148,14 +148,14 @@ export class Question {
             this.hideTimer();
             this.onTimerEnding();
         } else {
-            const timeLeft = parseInt((this.endTime - currentTime) / 1000);
-            this.quiz.role.onTimerTick(timeLeft);
+            const timeLeft = (this.endTime - currentTime) / 1000;
+            this.quiz.role.onTimerTick(Math.round(timeLeft));
         }
     }
 
     /**
      * Request the current question from the server.
-     * @param {number} questionTime
+     * @param {number|string} questionTime
      */
     startAttempt(questionTime) {
         document.querySelector(selectors.quiz.info).classList.add('hidden');

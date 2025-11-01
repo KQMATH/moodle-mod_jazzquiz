@@ -30,7 +30,6 @@ use stdClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class jazzquiz_session {
-
     /** The session has been created, but the instructor has not started the quiz yet. */
     const STATUS_NOTRUNNING = 'notrunning';
 
@@ -517,6 +516,7 @@ class jazzquiz_session {
     /**
      * Get the correct answer rendered in HTML.
      *
+     * @param jazzquiz $jazzquiz
      * @return string HTML
      */
     public function get_question_right_response(jazzquiz $jazzquiz): string {
@@ -608,5 +608,4 @@ class jazzquiz_session {
         $question = $DB->get_record('question', ['id' => $id], 'qtype');
         return $question->qtype;
     }
-
 }

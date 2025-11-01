@@ -29,7 +29,6 @@ require_once($CFG->libdir . '/formslib.php');
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class student_start_form extends \moodleform {
-
     /**
      * Account for namespace in the class name such that client validation works.
      *
@@ -59,5 +58,3 @@ class student_start_form extends \moodleform {
         return [];
     }
 }
-
-

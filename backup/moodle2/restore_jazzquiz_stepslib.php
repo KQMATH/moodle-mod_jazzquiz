@@ -22,7 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class restore_jazzquiz_activity_structure_step extends restore_questions_activity_structure_step {
-
     /** @var stdClass Attempt record for inform_new_usage_id */
     private stdClass $currentattempt;
 
@@ -34,22 +33,39 @@ class restore_jazzquiz_activity_structure_step extends restore_questions_activit
     protected function define_structure(): array {
         $userinfo = $this->get_setting_value('userinfo');
         $paths = [];
-        $paths[] = new restore_path_element('jazzquiz', '/activity/jazzquiz');
-        $paths[] = new restore_path_element('jazzquiz_question',
-           '/activity/jazzquiz/questions/question');
+        $paths[] = new restore_path_element(
+            name: 'jazzquiz',
+            path: '/activity/jazzquiz'
+        );
+        $paths[] = new restore_path_element(
+            name: 'jazzquiz_question',
+            path: '/activity/jazzquiz/questions/question',
+        );
         if ($userinfo) {
-            $paths[] = new restore_path_element('jazzquiz_session',
-               '/activity/jazzquiz/sessions/session');
-            $paths[] = new restore_path_element('jazzquiz_session_question',
-               '/activity/jazzquiz/sessions/session/sessionquestions/sessionquestion');
-            $paths[] = new restore_path_element('jazzquiz_merge',
-               '/activity/jazzquiz/sessions/session/merges/merge');
-            $paths[] = new restore_path_element('jazzquiz_vote',
-               '/activity/jazzquiz/sessions/session/votes/vote');
-            $paths[] = new restore_path_element('jazzquiz_attendance',
-               '/activity/jazzquiz/sessions/session/attendances/attendance');
-            $attempt = new restore_path_element('jazzquiz_attempt',
-               '/activity/jazzquiz/sessions/session/attempts/attempt');
+            $paths[] = new restore_path_element(
+                name: 'jazzquiz_session',
+                path: '/activity/jazzquiz/sessions/session',
+            );
+            $paths[] = new restore_path_element(
+                name: 'jazzquiz_session_question',
+                path: '/activity/jazzquiz/sessions/session/sessionquestions/sessionquestion',
+            );
+            $paths[] = new restore_path_element(
+                name: 'jazzquiz_merge',
+                path: '/activity/jazzquiz/sessions/session/merges/merge',
+            );
+            $paths[] = new restore_path_element(
+                name: 'jazzquiz_vote',
+                path: '/activity/jazzquiz/sessions/session/votes/vote',
+            );
+            $paths[] = new restore_path_element(
+                name: 'jazzquiz_attendance',
+                path: '/activity/jazzquiz/sessions/session/attendances/attendance',
+            );
+            $attempt = new restore_path_element(
+                name: 'jazzquiz_attempt',
+                path: '/activity/jazzquiz/sessions/session/attempts/attempt',
+            );
             $paths[] = $attempt;
             $this->add_question_usages($attempt, $paths);
         }
@@ -212,5 +228,4 @@ class restore_jazzquiz_activity_structure_step extends restore_questions_activit
     protected function after_execute(): void {
         $this->add_related_files('mod_jazzquiz', 'intro', null);
     }
-
 }

@@ -21,11 +21,9 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import $ from 'jquery';
-import {get_string} from 'core/str';
+import {getString} from 'core/str';
 import Ajax from 'core/ajax';
 import Notification from 'core/notification';
-import selectors from 'mod_jazzquiz/selectors';
 import {Question} from 'mod_jazzquiz/question';
 
 // Contains the needed values for using the ajax script.
@@ -81,18 +79,16 @@ export class Quiz {
 
 /**
  * Retrieve a language string that was sent along with the page.
- * @param {*} element
+ * @param {HTMLElement} element
  * @param {string} key Which string in the language file we want.
  * @param {string} [from=jazzquiz] Which language file we want the string from. Default is jazzquiz.
  * @param {array} [args=[]] This is {$a} in the string for the key.
  */
-export function setText(element, key, from, args) {
+export async function setText(element, key, from, args) {
     from = (from !== undefined) ? from : 'jazzquiz';
     args = (args !== undefined) ? args : [];
-    $.when(get_string(key, from, args)).done(text => {
-        element.innerHTML = text;
-        element.classList.remove('hidden');
-    });
+    element.innerHTML = await getString(key, from, args);
+    element.classList.remove('hidden');
 }
 
 /**

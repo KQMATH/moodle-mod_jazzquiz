@@ -88,7 +88,7 @@ function listenAddToQuiz(courseModuleId) {
 
 /**
  * Initialize edit page.
- * @param {Number} courseModuleId
+ * @param {number} courseModuleId
  */
 export function initialize(courseModuleId) {
     document.addEventListener('click', event => {
@@ -116,7 +116,7 @@ export function initialize(courseModuleId) {
             submitQuestionOrder(order, courseModuleId);
         }
     });
-    let questionList = document.getElementsByClassName('questionlist')[0];
+    const questionList = document.getElementsByClassName('questionlist')[0];
     if (typeof Sortable !== 'undefined') {
         // eslint-disable-next-line no-undef
         Sortable.create(questionList, {

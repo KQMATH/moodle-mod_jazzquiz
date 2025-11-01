@@ -27,7 +27,6 @@ use stdClass;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class jazzquiz_question {
-
     /** @var stdClass */
     public stdClass $data;
 
@@ -53,5 +52,4 @@ class jazzquiz_question {
     public function is_valid(): bool {
         return $this->question !== null;
     }
-
 }
